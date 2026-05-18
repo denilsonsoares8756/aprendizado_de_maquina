@@ -2,8 +2,8 @@
 venv/
 
 # Dados (arquivos grandes, não versionar)
-data/
-!data/.gitkeep
+data/movies.csv
+data/ratings.csv
 
 # Jupyter
 .ipynb_checkpoints/
