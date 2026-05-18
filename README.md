@@ -8,14 +8,14 @@ O sistema recebe como entrada o identificador de um usuário e retorna uma lista
 
 ## Dataset
 
-O projeto utiliza o [MovieLens](https://grouplens.org/datasets/movielens/) (GroupLens Research), contendo:
+O projeto utiliza o dataset [Movie Recommendation System](https://www.kaggle.com/datasets/parasharmanas/movie-recommendation-system) disponível no Kaggle, contendo:
 
 | Arquivo | Descrição | Colunas |
 |---|---|---|
 | `ratings.csv` | Avaliações dos usuários | `userId`, `movieId`, `rating`, `timestamp` |
 | `movies.csv` | Informações dos filmes | `movieId`, `title`, `genres` |
 
-> Os arquivos de dados **não estão incluídos** no repositório devido ao tamanho. Faça o download em [grouplens.org/datasets/movielens](https://grouplens.org/datasets/movielens/) e coloque-os na pasta `data/`.
+> Os arquivos de dados **não estão incluídos** no repositório devido ao tamanho. Faça o download em [kaggle.com/datasets/parasharmanas/movie-recommendation-system](https://www.kaggle.com/datasets/parasharmanas/movie-recommendation-system) e coloque os arquivos na pasta `data/`.
 
 ## Estrutura do Projeto
 
