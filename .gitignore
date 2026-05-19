@@ -4,6 +4,9 @@ venv/
 # Dados (arquivos grandes, não versionar)
 data/movies.csv
 data/ratings.csv
+data/processed/movies_clean.csv
+data/processed/ratings_clean.csv
+data/processed/ratings_sample.csv
 
 # Jupyter
 .ipynb_checkpoints/
