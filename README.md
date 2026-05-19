@@ -4,7 +4,36 @@ Sistema de recomendação de filmes desenvolvido com técnicas de Aprendizado de
 
 ## Descrição
 
-O sistema recebe como entrada o identificador de um usuário e retorna uma lista personalizada de filmes recomendados com base em seu histórico de avaliações. A abordagem principal é a **filtragem colaborativa baseada em itens** (*item-based collaborative filtering*), que encontra filmes similares àqueles que o usuário já avaliou positivamente.
+O sistema recebe como entrada o identificador de um usuário e retorna uma lista personalizada de filmes recomendados com base em seu histórico de avaliações. A abordagem é a **filtragem colaborativa baseada em itens com fatoração de matrizes (SVD)**.
+
+### Como funciona
+
+O dataset tem 99,74% de esparsidade: cada usuário avaliou menos de 0,3% dos filmes. Isso torna a similaridade direta entre filmes instável (dois filmes raramente compartilham avaliadores em comum). A solução é usar **SVD (Decomposição em Valores Singulares)** para comprimir a matriz usuário × filme em 50 "dimensões ocultas" (fatores latentes) que representam conceitos como "gosta de animação", "prefere drama", etc.
+
+**Fluxo do modelo:**
+
+```
+ratings do usuário
+  → Matriz usuário × filme (scipy.sparse)
+  → TruncatedSVD (50 fatores latentes)
+  → Vetor latente denso para cada filme
+  → Similaridade de cosseno entre filmes
+  → Top-N recomendações
+```
+
+**Exemplo:** suponha que o Usuário 42 avaliou bem Toy Story (5.0) e Shrek (4.5).
+
+1. O modelo encontra os filmes mais similares a Toy Story no espaço latente: Finding Nemo, Monsters Inc., A Bug's Life...
+2. Faz o mesmo para Shrek: Kung Fu Panda, Madagascar...
+3. Pondera a similaridade pela nota do usuário (filmes bem avaliados influenciam mais)
+4. Remove filmes já assistidos e retorna o top-10:
+
+| Recomendação | Score |
+|---|---|
+| Finding Nemo | 0.91 |
+| Monsters Inc. | 0.88 |
+| Kung Fu Panda | 0.82 |
+| ... | ... |
 
 ## Dataset
 
@@ -20,12 +49,19 @@ O projeto utiliza o dataset [Movie Recommendation System](https://www.kaggle.com
 ## Estrutura do Projeto
 
 ```
-├── data/                  # Arquivos CSV do dataset (não versionados)
-│   ├── ratings.csv
-│   └── movies.csv
-├── notebooks/             # Notebooks Jupyter com análises e modelos
-├── venv/                  # Ambiente virtual Python (não versionado)
-├── requirements.txt       # Dependências do projeto
+├── data/
+│   ├── ratings.csv              # Dados brutos (não versionados)
+│   ├── movies.csv               # Dados brutos (não versionados)
+│   └── processed/               # Dados tratados (não versionados)
+│       ├── ratings_clean.csv    # Ratings sem duplicatas + coluna date
+│       ├── movies_clean.csv     # Filmes com pelo menos 1 avaliação
+│       └── ratings_sample.csv  # 10% dos ratings (para prototipagem)
+├── notebooks/
+│   ├── 01_exploracao.ipynb      # Análise exploratória
+│   ├── 02_preprocessamento.ipynb # Limpeza e geração dos dados processados
+│   └── 03_modelo.ipynb          # Modelo SVD + recomendação
+├── venv/                        # Ambiente virtual Python (não versionado)
+├── requirements.txt
 ├── .gitignore
 └── README.md
 ```
@@ -76,5 +112,6 @@ jupyter notebook notebooks/
 
 - Python 3
 - Jupyter Notebook
-- Filtragem Colaborativa (Item-Based)
-- Dataset MovieLens
+- SVD via `TruncatedSVD` (scikit-learn) + similaridade de cosseno (scipy)
+- Filtragem Colaborativa Baseada em Itens
+- Dataset MovieLens (25M avaliações)
