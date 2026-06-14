@@ -1,0 +1,451 @@
+\documentclass[aspectratio=169,10pt]{beamer}
+\usetheme{UU}
+
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% --- Payoff ITA ---
+\uupayoff{%
+  {\rmfamily\mdseries\fontsize{11}{12}\selectfont Instituto Tecnológico de Aeronáutica}\\
+  {\sffamily\fontseries{l}\small\itshape PO-233 Aprendizado de Máquina}%
+}
+
+% --- Metadados ---
+\title[Recomendação de Filmes com SVD]{%
+  Sistema de Recomendação de Filmes\\
+  com Fatoração de Matrizes\\
+  e Centralização por Usuários%
+}
+\author[D.\,Soares \and E.\,Costa]{%
+  Denilson Gustavo de Araújo Soares\\[2pt]
+  Enzo Mitsuo Tokushige Costa%
+}
+\institute{%
+  Instituto Tecnológico de Aeronáutica\\[2pt]
+  {\footnotesize Profª Ana Carolina Lorena}%
+}
+\date{Junho de 2026}
+
+% ============================================================
+\begin{document}
+% ============================================================
+
+% -------------------------------------------------------
+% Slide 1 — Capa
+% -------------------------------------------------------
+\begin{frame}[plain]
+  \titlepage
+\end{frame}
+
+% -------------------------------------------------------
+% Slide 2 — Agenda
+% -------------------------------------------------------
+\begin{frame}{Agenda}
+  \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Motivação}
+% ============================================================
+
+\begin{frame}{Motivação}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{O problema de recomendação}
+        \small
+        \begin{itemize}
+          \item Plataformas como Netflix e Amazon dependem de recomendações relevantes
+          \item Usuário avaliou, em média, \textbf{0,26\%} dos filmes disponíveis
+          \item Esparsidade de \textbf{99,74\%} — similaridade direta é inviável
+        \end{itemize}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Abordagem adotada}
+        \small\textbf{Fatoração de Matrizes} (SVD): vetores latentes que capturam preferências implícitas.
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{alertblock}{O desafio central}
+        \centering
+        \vskip 4pt
+        162.541 usuários\\
+        $\times$\\
+        59.047 filmes\\[6pt]
+        $\approx$ 9,6 bilhões de pares\\[6pt]
+        \textbf{apenas 25 milhões avaliados}
+        \vskip 4pt
+      \end{alertblock}
+      \vskip 6pt
+      \begin{exampleblock}{Meta}
+        \small Estimar a nota que um usuário daria a filmes que \textbf{nunca assistiu} e recomendar os mais prováveis.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Dataset — MovieLens 25M}
+% ============================================================
+
+\begin{frame}[shrink=5]{Dataset — MovieLens 25M}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Visão geral}
+        \footnotesize
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lr}
+          \toprule
+          \textbf{Atributo} & \textbf{Valor} \\
+          \midrule
+          Avaliações        & 25.000.095 \\
+          Usuários únicos   & 162.541    \\
+          Filmes únicos     & 59.047     \\
+          Esparsidade       & 99,74\%    \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Escala de notas}
+        \footnotesize
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lr}
+          \toprule
+          \textbf{Propriedade} & \textbf{Valor} \\
+          \midrule
+          Intervalo        & 0,5 a 5,0 (passo 0,5) \\
+          Média / Mediana  & 3,53 \;/\; 3,50       \\
+          Notas $\geq$ 3,5 & 62,5\%                \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Colunas do arquivo \texttt{ratings.csv}}
+        \footnotesize
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}ll}
+          \toprule
+          \textbf{Coluna} & \textbf{Descrição} \\
+          \midrule
+          \texttt{userId}    & Identificador do usuário \\
+          \texttt{movieId}   & Identificador do filme   \\
+          \texttt{rating}    & Nota dada (0,5 – 5,0)   \\
+          \texttt{timestamp} & Data da avaliação (Unix) \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Colunas do arquivo \texttt{movies.csv}}
+        \footnotesize
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}ll}
+          \toprule
+          \textbf{Coluna} & \textbf{Descrição} \\
+          \midrule
+          \texttt{movieId} & Identificador do filme          \\
+          \texttt{title}   & Título e ano                    \\
+          \texttt{genres}  & Gêneros separados por \texttt{|} \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Pré-processamento}
+% ============================================================
+
+\begin{frame}[shrink=3]{Pré-processamento}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Pipeline de pré-processamento}
+        \small
+        \begin{enumerate}\itemsep2pt
+          \item Remoção de duplicatas \textbf{(0 encontradas)}
+          \item Conversão \texttt{timestamp} $\rightarrow$ \texttt{datetime}
+          \item Remoção de filmes sem avaliações \textbf{(3.376 removidos)}
+          \item Filtro: usuários $\geq$ 20 avaliações; filmes $\geq$ 50
+        \end{enumerate}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Divisão treino / teste — \emph{split} temporal}
+        \small
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lrr}
+          \toprule
+          \textbf{Conjunto} & \textbf{Ratings} & \textbf{Até} \\
+          \midrule
+          Treino (80\%) & 19.715.942 & 2016-05-28 \\
+          Teste  (20\%) &  4.928.986 & depois     \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{alertblock}{Por que \emph{split} temporal?}
+        \small Simula o cenário real: o modelo só vê avaliações \textbf{passadas} para recomendar filmes futuros. Evita vazamento de informação.
+      \end{alertblock}
+      \vskip 3pt
+      \begin{block}{Após filtragem}
+        \small
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lr}
+          \toprule
+          \textbf{Atributo} & \textbf{Valor} \\
+          \midrule
+          Usuários & 162.540    \\
+          Filmes   & 13.176     \\
+          Ratings  & 24.644.928 \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Fundamentação: SVD e Centralização}
+% ============================================================
+
+\begin{frame}{Fatoração de Matrizes com SVD}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Ideia central}
+        \small A matriz esparsa $\mathbf{R}$ (usuários $\times$ filmes) é aproximada:
+        \[ \mathbf{R} \approx \mathbf{U}\,\boldsymbol{\Sigma}\,\mathbf{V}^\top \]
+        \vskip -4pt
+        \begin{itemize}
+          \item $\mathbf{U}$: perfil latente de cada usuário
+          \item $\mathbf{V}$: perfil latente de cada filme
+          \item $\boldsymbol{\Sigma}$: importância de cada fator
+        \end{itemize}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Predição de nota}
+        \small
+        \[ \hat{r}_{ui} = \mu_u + \mathbf{u}_u^\top\,\mathbf{v}_i \]
+        \vskip -4pt
+        onde $\mu_u$ é a média do usuário $u$.
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{block}{Parâmetros do modelo}
+        \small
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lr}
+          \toprule
+          \textbf{Parâmetro} & \textbf{Valor} \\
+          \midrule
+          Fatores latentes ($k$) & 50      \\
+          Variância explicada    & 18,10\% \\
+          Esparsidade da matriz  & 98,83\% \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+      \vskip 3pt
+      \begin{alertblock}{Centralização por usuário}
+        \small Antes do SVD, subtrai-se $\mu_u$ de cada nota de $u$:
+        \[ \tilde{r}_{ui} = r_{ui} - \mu_u \]
+        \vskip -4pt
+        Elimina o viés de usuários que sistematicamente dão notas altas ou baixas.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Método de Recomendação}
+% ============================================================
+
+\begin{frame}[shrink=8]{Similaridade de Cosseno entre Itens}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Vetores latentes dos filmes}
+        \small SVD produz \texttt{item\_factors}: matriz $(13.176 \times 50)$.\\[3pt]
+        Similaridade entre filmes $i$ e $j$:
+        \[
+          \text{sim}(i,j) = \frac{\mathbf{v}_i^\top\mathbf{v}_j}{\|\mathbf{v}_i\|\|\mathbf{v}_j\|} \in [0,1]
+        \]
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Geração de recomendações}
+        \small
+        \begin{enumerate}\itemsep2pt
+          \item Busca filmes avaliados pelo usuário no treino
+          \item Para cada filme, encontra os 20 mais similares
+          \item Pondera similaridade pela nota do usuário
+          \item Remove já vistos e retorna Top-10
+        \end{enumerate}
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{block}{Exemplo de similaridade}
+        \footnotesize Filme base: \emph{A Fish Called Wanda} (1988)
+        \vskip 2pt
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lr}
+          \toprule
+          \textbf{Filme similar} & \textbf{sim} \\
+          \midrule
+          Monty Python: And Now\ldots  & 0,796 \\
+          Monty Python's Life of Brian & 0,764 \\
+          Monty Python: Hollywood Bowl & 0,735 \\
+          Monty Python: Holy Grail     & 0,710 \\
+          The Commitments (1991)       & 0,702 \\
+          \bottomrule
+        \end{tabular*}
+        \vskip 4pt
+        \footnotesize\textit{Filmes do mesmo universo emergem \textbf{sem supervisão explícita} de gênero.}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Resultados}
+% ============================================================
+
+\begin{frame}{Resultados — RMSE e MAE}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Predição de nota}
+        \small
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}lcc}
+          \toprule
+          \textbf{Métrica} & \textbf{Sem centr.} & \textbf{Com centr.} \\
+          \midrule
+          RMSE & 3,4339 & \textbf{0,9635} \\
+          MAE  & 3,2834 & \textbf{0,7177} \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Baseline ingênuo (média global)}
+        \small $\text{RMSE}_{\text{baseline}} \approx 1{,}0221$ — predizer sempre a média global.
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{alertblock}{Impacto da centralização}
+        \small A centralização reduziu o RMSE de \textbf{3,43 para 0,96} — queda de \textbf{72\%}.\\[2pt]
+        Sem ela, o modelo ignorava o viés individual de cada usuário.
+      \end{alertblock}
+      \vskip 3pt
+      \begin{exampleblock}{Comparação com baseline}
+        \small O modelo supera o baseline ingênuo:\\[2pt]
+        $0{,}9635 < 1{,}0221$ \quad (\textbf{RMSE})\\
+        $0{,}7177 < 1{,}06$ \quad (\textbf{MAE})
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Resultados — Precision@10}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Definição da métrica}
+        \small
+        \[ \text{Precision@}k = \frac{|\text{top-}k \cap \text{relevantes}|}{k} \]
+        \vskip -4pt
+        \begin{itemize}
+          \item \textbf{Candidatos:} filmes avaliados no teste e conhecidos pelo modelo
+          \item \textbf{Relevante:} nota $\geq$ 4,0 \quad ($k = 10$, 200 usuários)
+        \end{itemize}
+      \end{block}
+      \vskip 3pt
+      \begin{block}{Resultado}
+        \small\centering
+        $\text{Precision@10} = \mathbf{0{,}5743}$\\[2pt]
+        Entre os 10 sugeridos, \textbf{57,4\%} são relevantes.
+      \end{block}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \begin{alertblock}{Interpretação do protocolo}
+        \small Os candidatos são restritos aos filmes que o usuário \textbf{de fato avaliou} no teste — não o catálogo inteiro.\\[2pt]
+        Torna a métrica equivalente a um \emph{ranking} entre opções conhecidas.
+      \end{alertblock}
+      \vskip 3pt
+      \begin{exampleblock}{Leitura prática}
+        \small Em cada lista de 10, o modelo acerta \textbf{5 a 6 filmes} que o usuário consideraria bons — sem ter visto essas avaliações no treino.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Exemplo de Recomendação}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Histórico do usuário 1 (nota 5,0)}
+        \small
+        \begin{tabular}{l}
+          \toprule
+          \textbf{Filmes avaliados} \\
+          \midrule
+          Lost in Translation (2003) \\
+          Requiem for a Dream (2000) \\
+          Three Colors: Blue (1993) \\
+          The Seventh Seal (1957) \\
+          Look at Me (2004) \\
+          \bottomrule
+        \end{tabular}
+      \end{block}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Top-5 recomendações geradas}
+        \footnotesize
+        \begin{tabular*}{\dimexpr\linewidth-12pt\relax}{@{\extracolsep{\fill}}ll}
+          \toprule
+          \textbf{Filme recomendado} & \textbf{Gênero} \\
+          \midrule
+          Discreet Charm\ldots (1972) & Comedy/Drama \\
+          Vivre sa vie (1962)         & Drama \\
+          Andrei Rublev (1969)        & Drama/War \\
+          Viridiana (1961)            & Comedy/Drama \\
+          Last Year at Marienbad      & Drama/Mystery \\
+          \bottomrule
+        \end{tabular*}
+      \end{block}
+      \vskip 4pt
+      \begin{exampleblock}{Interpretação}
+        \small O modelo inferiu preferência por \textbf{cinema de arte europeu} sem nenhuma informação explícita de gênero — apenas pelos padrões latentes da matriz.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ============================================================
+\section{Limitações e Trabalhos Futuros}
+% ============================================================
+
+\begin{frame}{Limitações e Trabalhos Futuros}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{Limitações identificadas}
+        \begin{itemize}
+          \item \textbf{Cold start:} usuários e filmes novos não têm vetor latente
+          \item \textbf{SVD estático:} não atualiza incrementalmente com novas avaliações
+          \item \textbf{18,10\% de variância explicada} — 50 componentes podem ser insuficientes
+          \item Precision@10 avaliada apenas em filmes \emph{já vistos} no teste, não no catálogo completo
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Possíveis extensões}
+        \begin{enumerate}
+          \item Substituir SVD por \textbf{ALS} (\emph{Alternating Least Squares}) — mais adequado para dados implícitos
+          \item Incorporar \textbf{conteúdo} (gêneros, ano, tags) para mitigar cold start
+          \item Avaliar com \emph{leave-one-out} sobre o catálogo completo
+          \item Aumentar $k$ e comparar variância explicada
+        \end{enumerate}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% -------------------------------------------------------
+% Encerramento
+% -------------------------------------------------------
+\thankframe{Obrigado! \quad Perguntas?}{%
+  Denilson Gustavo de Araújo Soares\\
+  Enzo Mitsuo Tokushige Costa\\[4pt]
+  \texttt{PO-233 Aprendizado de Máquina}%
+}
+
+\end{document}

@@ -1,0 +1,49 @@
+% beamerthemeUU.sty — adaptado para ITA
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{beamerthemeUU}[2026/05/14 v1.1.0-ITA Beamer Theme ITA]
+
+\newif\if@UUnosection\@UUnosectionfalse
+\newif\if@UUnl\@UUnlfalse
+\newif\if@UUshowlogo\@UUshowlogofalse
+
+\DeclareOption{nosectionpage}{\@UUnosectiontrue}
+\DeclareOption{nl}{\@UUnltrue}
+\DeclareOption{showlogo}{\@UUshowlogotrue}
+\ProcessOptions\relax
+
+\usecolortheme{UU}
+\useinnertheme{UU}
+\useoutertheme{UU}
+
+% --- Fontes ---
+\usepackage[T1]{fontenc}
+\IfFileExists{merriweather.sty}{\usepackage{merriweather}}{\usepackage{palatino}}
+\IfFileExists{opensans.sty}{\usepackage[default]{opensans}}{}
+
+\usefonttheme{professionalfonts}
+\setbeamerfont{title}{family=\rmfamily, series=\bfseries, size=\large}
+\setbeamerfont{subtitle}{family=\sffamily, size=\normalsize}
+\setbeamerfont{frametitle}{family=\rmfamily, series=\bfseries, size=\large}
+\setbeamerfont{author}{family=\sffamily, size=\normalsize}
+\setbeamerfont{institute}{family=\sffamily, size=\small}
+\setbeamerfont{date}{family=\sffamily, size=\small}
+\setbeamerfont{block title}{family=\sffamily, series=\bfseries, size=\normalsize}
+\setbeamerfont{caption}{size=\small}
+\setbeamerfont{footnote}{size=\footnotesize}
+
+% --- Logo do ITA (substitui os logos da UU) ---
+\renewcommand{\@uulogopath}{ita_logo.jpg}
+\renewcommand{\@uulogoblackpath}{ita_logo.jpg}
+
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{navigation symbols}{}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=UUdarkblue,
+  urlcolor=UUpurple,
+  citecolor=UUdarkblue,
+}
+
+\endinput
