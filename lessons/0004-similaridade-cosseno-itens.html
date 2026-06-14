@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 1 — Similaridade de Cosseno entre Itens</title>
+  <style>
+    /* Tufte-inspired */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 18px;
+      line-height: 1.7;
+      color: #111;
+      background: #fffff8;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 2rem 6rem;
+    }
+
+    header {
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+    }
+
+    .label {
+      font-size: 0.8rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #888;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem;
+         border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+
+    p { margin-top: 1rem; }
+
+    .mission-note {
+      background: #f0f4ff;
+      border-left: 3px solid #5570d4;
+      padding: 0.8rem 1.2rem;
+      margin: 2rem 0;
+      font-size: 0.92rem;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* Cálculo passo a passo */
+    .calc-block {
+      background: #fefefe;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 1.5rem 2rem;
+      margin: 1.5rem 0;
+      font-family: "Courier New", monospace;
+      font-size: 0.95rem;
+      line-height: 1.9;
+    }
+
+    .calc-block .step-title {
+      font-family: "Georgia", serif;
+      font-size: 0.85rem;
+      color: #666;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+      display: block;
+    }
+
+    .highlight { color: #c0392b; font-weight: bold; }
+    .dim       { color: #888; }
+
+    table {
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      width: 100%;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem 0.9rem;
+      text-align: center;
+    }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+
+    .formula-box {
+      text-align: center;
+      margin: 1.5rem 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .formula-box .formula {
+      display: inline-block;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      padding: 0.6rem 1.4rem;
+      background: #fff;
+      font-family: "Courier New", monospace;
+    }
+
+    /* Quiz */
+    .quiz {
+      background: #fffbf0;
+      border: 1px solid #e8d88a;
+      border-radius: 4px;
+      padding: 1.5rem 2rem;
+      margin: 2.5rem 0;
+    }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li {
+      margin: 0.5rem 0;
+      cursor: pointer;
+    }
+    .options label {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      padding: 0.45rem 0.8rem;
+      border-radius: 3px;
+      border: 1px solid #ddd;
+      background: #fff;
+      transition: background 0.15s;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.95rem;
+    }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+
+    .quiz-feedback {
+      display: none;
+      margin-top: 1rem;
+      padding: 0.7rem 1rem;
+      border-radius: 3px;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.93rem;
+    }
+    .quiz-feedback.correct   { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+
+    .btn-check {
+      margin-top: 1rem;
+      padding: 0.45rem 1.2rem;
+      background: #5570d4;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      font-size: 0.9rem;
+    }
+    .btn-check:hover { background: #3f54b5; }
+
+    /* Score ponderado */
+    .score-table td:last-child { font-weight: bold; color: #c0392b; }
+
+    /* Callout */
+    .callout {
+      background: #f5f5f0;
+      border-left: 3px solid #888;
+      padding: 0.8rem 1.2rem;
+      margin: 1.5rem 0;
+      font-size: 0.92rem;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+
+    footer {
+      margin-top: 5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #ccc;
+      font-size: 0.85rem;
+      color: #666;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+    }
+    footer a { color: #5570d4; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    .teacher-note {
+      background: #eef6ff;
+      border: 1px dashed #93c5fd;
+      border-radius: 4px;
+      padding: 0.8rem 1.2rem;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      color: #1e3a5f;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 1 · Slide 7 · PO-233 Aprendizado de Máquina</span>
+  <h1>Similaridade de Cosseno<br>entre Itens — Exemplo Numérico</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Missão:</strong> Você vai apresentar o Slide 7 sobre Similaridade de Cosseno em ~1min 30s.
+  Esta lição constrói a intuição numérica para você explicar o cálculo com confiança, mesmo sob perguntas.
+</div>
+
+<h2>O que é a fórmula</h2>
+
+<p>
+  Após o SVD, cada filme <em>i</em> vira um vetor <strong>v<sub>i</sub></strong> de 50 números
+  (os chamados fatores latentes). A similaridade de cosseno entre dois filmes
+  mede o <em>ângulo</em> entre esses vetores — quanto menor o ângulo, mais similares os filmes.
+</p>
+
+<div class="formula-box">
+  <div class="formula">sim(i, j) = (vᵢ · vⱼ) / (‖vᵢ‖ · ‖vⱼ‖)</div>
+</div>
+
+<p>
+  O resultado sempre cai no intervalo <strong>[−1, 1]</strong>.
+  No nosso caso, como as notas foram centralizadas (desvios em relação à média do usuário),
+  os vetores podem ter componentes negativas — mas na prática o score fica próximo de [0, 1]
+  para filmes com alguma afinidade.
+</p>
+
+<h2>Exemplo numérico com vetores de 3 dimensões</h2>
+
+<p>
+  No modelo real, cada vetor tem 50 dimensões. Aqui usamos <strong>3 dimensões</strong>
+  para que o cálculo caiba em papel. O processo é idêntico — só há mais termos.
+</p>
+
+<p>
+  Imagine que o SVD aprendeu três fatores latentes para representar cada filme:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Filme</th>
+      <th>Fator 1<br><span style="font-weight:normal;font-size:0.8rem">("drama autoral")</span></th>
+      <th>Fator 2<br><span style="font-weight:normal;font-size:0.8rem">("comédia")</span></th>
+      <th>Fator 3<br><span style="font-weight:normal;font-size:0.8rem">("ação")</span></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><em>A Fish Called Wanda</em></td>
+      <td>0.2</td>
+      <td>0.9</td>
+      <td>0.1</td>
+    </tr>
+    <tr>
+      <td><em>Monty Python e o Cálice Sagrado</em></td>
+      <td>0.1</td>
+      <td>0.8</td>
+      <td>0.2</td>
+    </tr>
+    <tr>
+      <td><em>Exterminador do Futuro</em></td>
+      <td>0.0</td>
+      <td>0.1</td>
+      <td>0.9</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  Os rótulos ("drama autoral", "comédia") são ilustrativos. O modelo <strong>não rotula</strong>
+  os fatores — eles emergem automaticamente dos padrões de co-avaliação.
+</div>
+
+<h3>Passo 1 — Produto escalar (numerador)</h3>
+
+<div class="calc-block">
+  <span class="step-title">Wanda · Monty Python</span>
+  (0.2 × 0.1) + (0.9 × 0.8) + (0.1 × 0.2)<br>
+  = 0.02 + 0.72 + 0.02<br>
+  = <span class="highlight">0.76</span>
+
+  <br><br>
+
+  <span class="step-title">Wanda · Exterminador</span>
+  (0.2 × 0.0) + (0.9 × 0.1) + (0.1 × 0.9)<br>
+  = 0.00 + 0.09 + 0.09<br>
+  = <span class="highlight">0.18</span>
+</div>
+
+<h3>Passo 2 — Norma de cada vetor (denominador)</h3>
+
+<p>A norma ‖v‖ é a raiz da soma dos quadrados das componentes:</p>
+
+<div class="calc-block">
+  <span class="step-title">‖Wanda‖</span>
+  √(0.2² + 0.9² + 0.1²) = √(0.04 + 0.81 + 0.01) = √0.86 ≈ <span class="highlight">0.927</span>
+
+  <br><br>
+
+  <span class="step-title">‖Monty Python‖</span>
+  √(0.1² + 0.8² + 0.2²) = √(0.01 + 0.64 + 0.04) = √0.69 ≈ <span class="highlight">0.831</span>
+
+  <br><br>
+
+  <span class="step-title">‖Exterminador‖</span>
+  √(0.0² + 0.1² + 0.9²) = √(0.00 + 0.01 + 0.81) = √0.82 ≈ <span class="highlight">0.906</span>
+</div>
+
+<h3>Passo 3 — Similaridade final</h3>
+
+<div class="calc-block">
+  <span class="step-title">sim(Wanda, Monty Python)</span>
+  0.76 / (0.927 × 0.831) = 0.76 / 0.771 ≈ <span class="highlight">0.986</span>  ← muito similares ✓
+
+  <br><br>
+
+  <span class="step-title">sim(Wanda, Exterminador)</span>
+  0.18 / (0.927 × 0.906) = 0.18 / 0.840 ≈ <span class="highlight">0.214</span>  ← pouco similares ✓
+</div>
+
+<p>
+  <em>Wanda</em> e <em>Monty Python</em> têm sim ≈ <strong>0.99</strong> — seus vetores apontam quase
+  na mesma direção no espaço latente. O <em>Exterminador</em> fica longe: sim ≈ <strong>0.21</strong>.
+  Isso replica exatamente o resultado do slide (filmes Monty Python aparecem entre os mais próximos de <em>Wanda</em>).
+</p>
+
+<h2>Como isso vira uma recomendação</h2>
+
+<p>
+  Suponha que o usuário avaliou dois filmes com essas notas:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Filme do histórico</th><th>Nota do usuário</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><em>A Fish Called Wanda</em></td><td>5.0</td></tr>
+    <tr><td><em>Exterminador do Futuro</em></td><td>2.0</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Para cada candidato de recomendação, somamos os scores ponderados pela nota:
+</p>
+
+<div class="calc-block">
+  <span class="step-title">score(Monty Python) =</span>
+  sim(Wanda, Monty Python) × nota_Wanda  +  sim(Exterminador, Monty Python) × nota_Exterminador<br><br>
+
+  <span class="dim">Precisamos de sim(Exterminador, Monty Python):</span><br>
+  (0.0×0.1 + 0.1×0.8 + 0.9×0.2) / (0.906 × 0.831) = (0 + 0.08 + 0.18) / 0.753 ≈ 0.345<br><br>
+
+  score(Monty Python) = <span class="highlight">(0.986 × 5.0) + (0.345 × 2.0)</span><br>
+  = 4.93 + 0.69 = <span class="highlight">5.62</span>
+</div>
+
+<p>
+  O score alto (5.62) indica que <em>Monty Python</em> deve aparecer no Top-10 deste usuário —
+  puxado principalmente pela nota 5.0 em <em>Wanda</em>, que tem alta similaridade com ele.
+</p>
+
+<h2>Por que cosseno e não distância euclidiana?</h2>
+
+<p>
+  A distância euclidiana é sensível à <strong>magnitude</strong> dos vetores.
+  Filmes muito avaliados tendem a ter vetores de maior norma, o que os favoreceria
+  artificialmente. O cosseno mede só o <strong>ângulo</strong> — normaliza pela norma —
+  então um filme de nicho com poucas avaliações pode ser tão similar a outro quanto
+  um blockbuster, se os padrões de co-avaliação forem parecidos.
+</p>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    No exemplo acima, qual componente da fórmula de cosseno garante que filmes
+    com vetores de magnitudes diferentes ainda sejam comparados de forma justa?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> O produto escalar vᵢ · vⱼ no numerador</label></li>
+    <li><label><input type="radio" name="q1" value="b"> A divisão por ‖vᵢ‖ · ‖vⱼ‖ no denominador</label></li>
+    <li><label><input type="radio" name="q1" value="c"> O número de fatores latentes k = 50</label></li>
+    <li><label><input type="radio" name="q1" value="d"> O clipping das predições em [0.5, 5.0]</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    No cálculo do score de recomendação, um filme avaliado com nota 5.0 pelo usuário
+    influencia o score do candidato <em>mais</em> do que um filme com nota 2.0 porque:
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> O SVD atribui vetores maiores a filmes bem avaliados</label></li>
+    <li><label><input type="radio" name="q2" value="b"> A nota funciona como peso na soma ponderada de similaridades</label></li>
+    <li><label><input type="radio" name="q2" value="c"> A similaridade de cosseno é maior para filmes com nota 5.0</label></li>
+    <li><label><input type="radio" name="q2" value="d"> O modelo usa apenas filmes com nota acima de 4.0 como candidatos</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Cálculo direto</h3>
+  <p class="quiz-q">
+    Dois filmes têm vetores v₁ = [1, 0, 0] e v₂ = [0, 1, 0].
+    Qual é a similaridade de cosseno entre eles?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> 1.000  (vetores idênticos)</label></li>
+    <li><label><input type="radio" name="q3" value="b"> 0.500  (metade do máximo)</label></li>
+    <li><label><input type="radio" name="q3" value="c"> 0.000  (vetores ortogonais)</label></li>
+    <li><label><input type="radio" name="q3" value="d"> 0.707  (raiz de dois sobre dois)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','c')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte diretamente ao agente no terminal — ele é seu professor e pode
+  detalhar qualquer passo, criar mais exemplos numéricos, ou simular uma pergunta da banca sobre este slide.
+</div>
+
+<footer>
+  <p>
+    <strong>Fonte primária recomendada:</strong>
+    <a href="https://developers.google.com/machine-learning/recommendation/collaborative/matrix" target="_blank">
+      Google ML Crash Course — Matrix Factorization
+    </a>
+    — explicação concisa e autoritativa de como vetores latentes de usuários e itens são aprendidos.
+  </p>
+  <p style="margin-top:0.8rem">
+    Parte do roteiro de apresentação: <em>Slide 7 — Similaridade de Cosseno entre Itens (1min 30s)</em>
+  </p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: {
+        type: 'correct',
+        text: 'Correto. Dividir pelo produto das normas remove o efeito de magnitude — dois vetores que apontam na mesma direção terão sim = 1.0 independente do tamanho de cada vetor.'
+      },
+      default: {
+        type: 'incorrect',
+        text: 'Não. O produto escalar sozinho cresce com a magnitude dos vetores. É a divisão por ‖vᵢ‖ · ‖vⱼ‖ que normaliza e faz o cosseno medir apenas o ângulo.'
+      }
+    },
+    q2: {
+      b: {
+        type: 'correct',
+        text: 'Correto. O score é calculado como Σ sim(histórico_i, candidato) × nota_i. A nota funciona como peso — filmes adorados (nota 5) amplificam a contribuição dos seus vizinhos similares no ranking.'
+      },
+      default: {
+        type: 'incorrect',
+        text: 'Não. O SVD aprende vetores independente da nota. A nota alta influencia porque ela é literalmente o fator de peso na soma ponderada de similaridades — score(j) += sim(i, j) × rᵤᵢ.'
+      }
+    },
+    q3: {
+      c: {
+        type: 'correct',
+        text: 'Correto. v₁ · v₂ = (1×0) + (0×1) + (0×0) = 0. Dividindo pelas normas (ambas = 1), sim = 0. Vetores ortogonais não compartilham nenhuma direção — zero similaridade. É o caso de dois filmes de gêneros completamente distintos.'
+      },
+      default: {
+        type: 'incorrect',
+        text: 'Tente de novo. Calcule o produto escalar: (1×0) + (0×1) + (0×0) = ? Depois divida pelas normas. ‖v₁‖ = ‖v₂‖ = 1.'
+      }
+    }
+  };
+
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const map = feedbacks[qId];
+    const result = val === correct ? map[val] : map.default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+
+</body>
+</html>

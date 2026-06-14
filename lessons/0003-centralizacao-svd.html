@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 2 — Centralização por Usuário no SVD</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 18px; line-height: 1.7; color: #111; background: #fffff8;
+      max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem;
+    }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    .good { color: #1b5e20; font-weight: bold; }
+    .bad { color: #7f0000; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.1rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-red { background: #fdecea; border-left: 3px solid #e57373; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; cursor: pointer; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .side-by-side { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0; }
+    .side-by-side .panel { border: 1px solid #ddd; border-radius: 4px; padding: 1rem 1.2rem; }
+    .side-by-side .panel h4 { font-size: 0.9rem; margin-bottom: 0.5rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .panel-bad { border-color: #e57373; background: #fff8f8; }
+    .panel-good { border-color: #81c784; background: #f8fff8; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 2 · Slide 6 · PO-233 Aprendizado de Máquina</span>
+  <h1>Centralização por Usuário<br>no SVD — Por que funciona</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Foco desta lição:</strong> Ao final você vai conseguir explicar numericamente <em>por que</em> subtrair μᵤ resolve o problema dos zeros — e responder a pergunta mais provável da banca: "Como a centralização resolve o viés?"
+</div>
+
+<h2>O problema: zeros que não significam zero</h2>
+
+<p>
+  Quando montamos a matriz usuário × filme, colocamos <strong>0</strong> em todo par não avaliado.
+  Mas notas reais vão de <strong>0,5 a 5,0</strong>. O SVD não sabe a diferença entre
+  "não avaliou" e "avaliou com nota zero". Resultado: o modelo aprende que a nota
+  esperada de qualquer par é próxima de zero.
+</p>
+
+<p>Veja com um exemplo mínimo — 2 usuários, 4 filmes:</p>
+
+<h3>Matriz original R (sem centralização)</h3>
+
+<table>
+  <thead>
+    <tr><th></th><th>Titanic</th><th>Matrix</th><th>Toy Story</th><th>Gladiador</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Ana</strong></td><td>5</td><td>4</td><td>0 ←ausente</td><td>0 ←ausente</td></tr>
+    <tr><td><strong>Bruno</strong></td><td>0 ←ausente</td><td>0 ←ausente</td><td>3</td><td>4</td></tr>
+  </tbody>
+</table>
+
+<div class="callout-red">
+  <strong>Problema:</strong> O SVD lê a linha de Ana como [5, 4, 0, 0]. Ele aprende que Ana "odeia" Toy Story e Gladiador. Na verdade, ela simplesmente não os assistiu. O modelo vai predizer notas baixíssimas para filmes não avaliados por Ana.
+</div>
+
+<h2>A solução: centralizar por usuário</h2>
+
+<p>
+  Antes de passar a matriz para o SVD, subtraímos de cada nota a <strong>média daquele usuário</strong>
+  (calculada apenas sobre as notas observadas).
+</p>
+
+<div class="formula-box">
+  <div class="formula">r̃ᵤᵢ = rᵤᵢ − μᵤ</div>
+</div>
+
+<h3>Passo 1 — Calcular μᵤ para cada usuário</h3>
+
+<div class="calc-block">
+  <span class="step-title">Média de Ana (filmes avaliados: Titanic=5, Matrix=4)</span>
+  μ_Ana = (5 + 4) / 2 = <span class="highlight">4.5</span>
+
+  <br><br>
+
+  <span class="step-title">Média de Bruno (filmes avaliados: Toy Story=3, Gladiador=4)</span>
+  μ_Bruno = (3 + 4) / 2 = <span class="highlight">3.5</span>
+</div>
+
+<h3>Passo 2 — Subtrair μᵤ das notas observadas</h3>
+
+<div class="calc-block">
+  <span class="step-title">Notas centralizadas de Ana</span>
+  Titanic:  5 − 4.5 = <span class="highlight">+0.5</span>  (gostou mais que sua média)<br>
+  Matrix:   4 − 4.5 = <span class="highlight">−0.5</span>  (gostou menos que sua média)<br>
+  Toy Story: ausente → <span class="highlight">0</span>  (mantém zero)<br>
+  Gladiador: ausente → <span class="highlight">0</span>  (mantém zero)<br>
+
+  <br>
+
+  <span class="step-title">Notas centralizadas de Bruno</span>
+  Titanic:   ausente → <span class="highlight">0</span><br>
+  Matrix:    ausente → <span class="highlight">0</span><br>
+  Toy Story: 3 − 3.5 = <span class="highlight">−0.5</span>  (abaixo da média de Bruno)<br>
+  Gladiador: 4 − 3.5 = <span class="highlight">+0.5</span>  (acima da média de Bruno)<br>
+</div>
+
+<h3>Matriz centralizada R̃ que o SVD recebe</h3>
+
+<table>
+  <thead>
+    <tr><th></th><th>Titanic</th><th>Matrix</th><th>Toy Story</th><th>Gladiador</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Ana</strong></td><td>+0.5</td><td>−0.5</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Bruno</strong></td><td>0</td><td>0</td><td>−0.5</td><td>+0.5</td></tr>
+  </tbody>
+</table>
+
+<div class="callout-green">
+  <strong>Por que isso resolve:</strong> Agora o zero ausente significa "desvio zero em relação à média do usuário" — uma suposição razoável de que o usuário teria uma reação mediana ao filme. O SVD não confunde mais "não avaliou" com "odeia".
+</div>
+
+<h2>Passo 3 — Predição: somar μᵤ de volta</h2>
+
+<p>
+  O SVD aprende a decompor R̃. Para fazer uma predição, calculamos o produto latente
+  e somamos a média do usuário de volta:
+</p>
+
+<div class="formula-box">
+  <div class="formula">r̂ᵤᵢ = μᵤ + uᵤᵀ vᵢ</div>
+</div>
+
+<p>
+  Suponha que após o SVD, o produto latente ũ_Ana · v_ToyStory = <strong>−0.1</strong>
+  (Ana tende levemente a gostar menos de animações que a média).
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Predição: nota de Ana para Toy Story</span>
+  r̂ = μ_Ana + (produto latente)<br>
+  r̂ = 4.5 + (−0.1) = <span class="highlight">4.4</span>
+
+  <br><br>
+
+  <span class="step-title">Sem centralização, o mesmo modelo prediz:</span>
+  r̂ ≈ 0 + 0 = <span class="highlight">~0</span>  ← erro absurdo (nota real seria ~4)
+</div>
+
+<h2>O contraste que explica o resultado</h2>
+
+<div class="side-by-side">
+  <div class="panel panel-bad">
+    <h4>Sem centralização</h4>
+    <p style="font-size:0.9rem">O SVD aprende que entradas ausentes (zeros) são "notas zero". Para qualquer filme não visto, prediz próximo de zero. RMSE = <strong>3,43</strong> — pior que o baseline ingênuo.</p>
+  </div>
+  <div class="panel panel-good">
+    <h4>Com centralização</h4>
+    <p style="font-size:0.9rem">Zeros ausentes viram "desvio zero em relação à média do usuário". O modelo aprende preferências individuais sobre a média. RMSE = <strong>0,96</strong> — supera o baseline.</p>
+  </div>
+</div>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    No exemplo, Ana tem μᵤ = 4.5. Ela ainda não assistiu a Gladiador.
+    Na matriz centralizada, o valor da entrada Ana × Gladiador é:
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> 4.5  (a média de Ana)</label></li>
+    <li><label><input type="radio" name="q1" value="b"> −4.5 (negativo da média)</label></li>
+    <li><label><input type="radio" name="q1" value="c"> 0    (ausente permanece zero)</label></li>
+    <li><label><input type="radio" name="q1" value="d"> 0.5  (desvio positivo padrão)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','c')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Por que o RMSE sem centralização (3,43) é pior que o baseline ingênuo (1,02)?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> O SVD com muitos fatores faz overfitting nos dados de treino</label></li>
+    <li><label><input type="radio" name="q2" value="b"> O modelo aprende que a nota esperada é próxima de zero, errando ~3–5 pontos em toda nota real</label></li>
+    <li><label><input type="radio" name="q2" value="c"> O baseline usa a média global que está fora do intervalo [0,5; 5,0]</label></li>
+    <li><label><input type="radio" name="q2" value="d"> A esparsidade de 99,74% impede o SVD de convergir numericamente</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Resposta da banca</h3>
+  <p class="quiz-q">
+    Um professor pergunta: "A centralização não confunde zeros ausentes com zeros de desvio?" Como você responde?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Sim, é uma limitação — zeros ausentes e zeros de desvio zero são indistinguíveis, mas a média das entradas observadas passa a ser zero, tornando o zero ausente uma interpolação razoável</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Não, o SVD ignora entradas zero completamente após a centralização</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Não, o modelo distingue zero ausente de zero de desvio pela estrutura esparsa da matriz</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Sim, e por isso a centralização piora os resultados em matrizes muito esparsas</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','a')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode simular a pergunta da banca sobre centralização, criar mais exemplos numéricos, ou explicar por que o ALS resolve esse problema de forma mais correta (trabalho futuro do slide 11).
+</div>
+
+<footer>
+  <p>
+    <strong>Fonte primária:</strong>
+    <a href="https://dl.acm.org/doi/10.1145/1401890.1401944" target="_blank">Koren, Bell, Volinsky — Matrix Factorization Techniques for Recommender Systems (2009)</a>
+    — o artigo seminal que formaliza a centralização por usuário em sistemas de recomendação.
+  </p>
+  <p style="margin-top:0.8rem">Veja também: <a href="0004-similaridade-cosseno-itens.html">Lição 4 — Similaridade de Cosseno</a> · <a href="0005-rmse-mae.html">Lição 5 — RMSE e MAE</a></p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      c: { type: 'correct', text: 'Correto. Entradas ausentes permanecem zero na matriz centralizada. Só as entradas observadas são transformadas (rᵤᵢ − μᵤ). Isso é o que torna o zero ausente interpretável como "desvio zero em relação à média".' },
+      default: { type: 'incorrect', text: 'Não. Entradas ausentes não são modificadas — permanecem zero. Só notas observadas recebem a subtração de μᵤ.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Com 99,74% de zeros na matriz, o SVD aprende que a "nota média" de qualquer par é quase zero. Qualquer nota real (≥ 0,5) fica com erro enorme. O baseline ingênuo de predizer 3,53 para tudo é muito melhor porque pelo menos acerta a magnitude.' },
+      default: { type: 'incorrect', text: 'Não. O problema não é overfitting nem convergência — é que o modelo aprende que "não avaliou" = "nota zero", o que distorce todas as predições para valores próximos de zero.' }
+    },
+    q3: {
+      a: { type: 'correct', text: 'Correto. Esta é a resposta honesta e academicamente correta. A centralização não elimina a confusão entre os dois tipos de zero — ela apenas torna o zero ausente uma hipótese melhor (desvio zero = reação mediana) do que a hipótese original (nota zero = ódio absoluto). O ALS, citado no slide 11, é a solução mais rigorosa: otimiza apenas sobre entradas observadas.' },
+      default: { type: 'incorrect', text: 'Não. O SVD recebe a matriz inteira — não distingue zeros ausentes de zeros de desvio. A centralização melhora a hipótese implícita sobre esses zeros, mas não elimina a ambiguidade. Resposta (A) é a correta e a mais honesta para a banca.' }
+    }
+  };
+
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

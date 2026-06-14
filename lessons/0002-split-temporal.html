@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 6 — Split Temporal e Filtros de Frequência</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.1rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-red { background: #fdecea; border-left: 3px solid #e57373; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .timeline { display: flex; align-items: center; gap: 0; margin: 2rem 0; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    .tl-block { padding: 0.8rem 1rem; text-align: center; }
+    .tl-train { background: #5570d4; color: white; flex: 4; border-radius: 3px 0 0 3px; }
+    .tl-test  { background: #e57373; color: white; flex: 1; border-radius: 0 3px 3px 0; }
+    .tl-sep { width: 2px; background: #333; height: 48px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 6 · Slide 5 · PO-233 Aprendizado de Máquina</span>
+  <h1>Split Temporal e<br>Filtros de Frequência</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Por que importa:</strong> Estas decisões metodológicas definem se os resultados são válidos. A banca pode perguntar por que não usamos split aleatório, ou por que filtramos usuários com menos de 20 avaliações.
+</div>
+
+<h2>Filtro 1 — Frequência mínima</h2>
+
+<p>
+  Antes de qualquer divisão, removemos usuários e filmes com histórico muito curto:
+</p>
+
+<table>
+  <thead><tr><th>Filtro</th><th>Limiar</th><th>Motivo</th></tr></thead>
+  <tbody>
+    <tr><td>Usuários</td><td>≥ 20 avaliações</td><td>Vetor latente com base estatística mínima</td></tr>
+    <tr><td>Filmes</td><td>≥ 50 avaliações</td><td>Perfil latente confiável</td></tr>
+  </tbody>
+</table>
+
+<h3>Por que esses limiares importam — exemplo numérico</h3>
+
+<div class="calc-block">
+  <span class="step-title">Usuário com apenas 2 avaliações</span>
+  Avaliações: [Titanic=5, Matrix=5]<br>
+  Média: μᵤ = 5.0<br><br>
+  O SVD aprende: "este usuário ama tudo que assiste"<br>
+  Realidade: talvez ele só assista filmes que já sabe que vai gostar.<br>
+  Vetor latente resultante: <span class="highlight">enviesado, pouco generalizável</span>
+
+  <br><br>
+
+  <span class="step-title">Usuário com 50 avaliações</span>
+  Inclui filmes que gostou (4–5★) e filmes que não gostou (1–2★)<br>
+  O SVD aprende preferências mais discriminativas<br>
+  Vetor latente resultante: <span class="highlight">mais representativo das preferências reais</span>
+</div>
+
+<h3>Impacto numérico dos filtros</h3>
+
+<div class="calc-block">
+  <span class="step-title">Antes da filtragem</span>
+  162.541 usuários | 59.047 filmes | 25.000.095 ratings
+
+  <br><br>
+
+  <span class="step-title">Após filtrar usuários ≥ 20 e filmes ≥ 50</span>
+  162.540 usuários | 13.176 filmes | 24.644.928 ratings
+
+  <br><br>
+
+  Redução: −1 usuário, −<span class="highlight">45.871 filmes</span>, −355.167 ratings
+  <br>
+  → Removemos 77,7% dos filmes! Eram filmes com menos de 50 avaliações — perfil latente inútil.
+</div>
+
+<h2>Filtro 2 — Split temporal 80/20</h2>
+
+<div class="timeline">
+  <div class="tl-block tl-train">TREINO 80%<br>até 2016-05-28<br>19.715.942 ratings</div>
+  <div class="tl-block tl-test">TESTE 20%<br>depois<br>4.928.986 ratings</div>
+</div>
+
+<h3>Por que split temporal e não aleatório?</h3>
+
+<div class="callout-red">
+  <strong>Split aleatório — o problema:</strong> Suponha que Ana avaliou o Titanic em 2015 e a Matrix em 2018.
+  Com split aleatório, a Matrix (2018) pode ir para o treino e o Titanic (2015) para o teste.
+  O modelo "vê o futuro" de Ana: usa a avaliação de 2018 para predizer a de 2015.
+  Isso é <strong>vazamento de informação</strong> — o modelo parece melhor do que seria em produção.
+</div>
+
+<div class="callout-green">
+  <strong>Split temporal — a solução:</strong> Ordenamos todas as avaliações por timestamp.
+  Os 80% mais antigos vão para treino, os 20% mais recentes para teste.
+  O modelo só usa o passado para predizer o futuro — exatamente como seria em produção.
+</div>
+
+<h3>Exemplo numérico do vazamento</h3>
+
+<div class="calc-block">
+  <span class="step-title">Split ALEATÓRIO — com vazamento</span>
+  Treino: Ana avaliou Matrix em 2018 com nota 4.0 ✓<br>
+  Teste:  Ana avaliou Titanic em 2015 com nota 5.0 ← modelo "usa" 2018 para predizer 2015<br><br>
+  Resultado: RMSE artificialmente baixo — o modelo "lembrou do futuro"
+
+  <br><br>
+
+  <span class="step-title">Split TEMPORAL — sem vazamento</span>
+  Treino: todas as avaliações de Ana até 2016-05-28 (inclusive Titanic de 2015)<br>
+  Teste:  apenas avaliações após 2016-05-28 (Matrix de 2018 vai para o teste)<br>
+  Resultado: RMSE reflete desempenho real de produção
+</div>
+
+<h2>Os números-chave para memorizar</h2>
+
+<table>
+  <thead><tr><th>Etapa</th><th>Usuários</th><th>Filmes</th><th>Ratings</th></tr></thead>
+  <tbody>
+    <tr><td>Dados brutos</td><td>162.541</td><td>59.047</td><td>25.000.095</td></tr>
+    <tr><td>Após filtros</td><td>162.540</td><td>13.176</td><td>24.644.928</td></tr>
+    <tr><td>Treino (80%)</td><td colspan="2">—</td><td>19.715.942</td></tr>
+    <tr><td>Teste (20%)</td><td colspan="2">—</td><td>4.928.986</td></tr>
+    <tr><td>Matriz de treino</td><td>162.540</td><td><strong>12.315</strong></td><td>19.715.942</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>Por que 13.176 → 12.315 filmes na matriz de treino?</strong> Após o split, alguns filmes aparecem apenas no conjunto de teste — foram avaliados somente após 2016-05-28. Esses filmes não têm vetor latente (o SVD não os viu no treino). A matriz de treino fica com 12.315 filmes. Esse é o número que aparece nos slides de SVD e Similaridade.
+</div>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    O que é "vazamento de informação" (data leakage) no contexto do split de dados?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> Quando dados de treino e teste são de usuários diferentes, impossibilitando comparação</label></li>
+    <li><label><input type="radio" name="q1" value="b"> Quando informações do futuro (conjunto de teste) influenciam o treinamento, tornando a avaliação do modelo mais otimista do que seria em produção</label></li>
+    <li><label><input type="radio" name="q1" value="c"> Quando o modelo memoriza os dados de treino sem generalizar para novos usuários</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Quando a esparsidade do conjunto de teste é maior que a do treino</label></tr></label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Por que filtramos filmes com menos de 50 avaliações antes de treinar o SVD?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> Para reduzir o tamanho da matriz e economizar memória RAM</label></li>
+    <li><label><input type="radio" name="q2" value="b"> Para garantir que cada vetor latente de filme seja aprendido a partir de evidências suficientes, evitando vetores ruidosos baseados em poucas observações</label></li>
+    <li><label><input type="radio" name="q2" value="c"> Porque o SVD não funciona com filmes com menos de 50 avaliações</label></li>
+    <li><label><input type="radio" name="q2" value="d"> Porque filmes com menos de 50 avaliações são todos ruins e não deveriam ser recomendados</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Cálculo rápido</h3>
+  <p class="quiz-q">
+    A data de corte do split é 2016-05-28. O usuário Bruno avaliou:<br>
+    • Titanic em 2014-03-10 = 4.0<br>
+    • Matrix em 2016-06-01 = 5.0<br>
+    • Gladiador em 2015-11-20 = 3.0<br>
+    Quais avaliações de Bruno estão no treino?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Titanic e Matrix  (as duas com maior nota)</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Titanic e Gladiador  (ambos antes de 2016-05-28)</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Apenas Titanic  (a mais antiga)</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Todas as três  (split 80/20 significa 80% aleatório)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode explicar outras estratégias de split (leave-one-out, k-fold temporal), por que o split temporal é mais rigoroso para sistemas de recomendação, ou o impacto dos filtros de frequência no viés do modelo.
+</div>
+
+<footer>
+  <p>Veja também: <a href="0001-esparsidade.html">Lição 1 — Esparsidade</a> · <a href="0003-centralizacao-svd.html">Lição 3 — Centralização por Usuário</a></p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. Vazamento de informação ocorre quando o modelo "vê" dados que não estariam disponíveis em produção real. No split aleatório, avaliações futuras podem aparecer no treino, fazendo o modelo parecer mais preciso do que realmente é.' },
+      default: { type: 'incorrect', text: 'Não. Vazamento de informação é quando o futuro contamina o passado durante o treino. O modelo aprende usando informações que não existiriam no momento da predição real — o RMSE avaliado fica artificialmente bom.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. O SVD aprende um vetor de 50 dimensões para cada filme. Com 2 ou 5 avaliações, esse vetor se ajusta a muito pouco sinal — qualquer padrão observado pode ser ruído aleatório. O filtro de ≥50 garante evidência mínima para cada representação latente.' },
+      default: { type: 'incorrect', text: 'Não. O SVD funciona tecnicamente com qualquer número de avaliações. O problema é de qualidade estatística: vetores latentes aprendidos com pouquíssimas observações são ruidosos e não generalizam para predições futuras.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto. O corte é 2016-05-28. Titanic (2014-03-10) e Gladiador (2015-11-20) são anteriores → treino. Matrix (2016-06-01) é posterior → teste. O split é estritamente cronológico, não por nota ou outro critério.' },
+      default: { type: 'incorrect', text: 'Não. O split é temporal: vai para treino tudo que é anterior a 2016-05-28, e para teste tudo que é posterior. Titanic (2014) e Gladiador (2015) estão antes do corte → treino. Matrix (2016-06-01) está depois → teste.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 5 — Esparsidade da Matriz Usuário × Filme</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.1rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .sparse-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 3px; margin: 1.5rem 0; max-width: 320px; }
+    .cell { width: 28px; height: 28px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-family: monospace; }
+    .cell-filled { background: #5570d4; color: white; }
+    .cell-empty { background: #eee; color: #bbb; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 5 · Slide 3 · PO-233 Aprendizado de Máquina</span>
+  <h1>Esparsidade —<br>O Problema Fundamental</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Por que importa:</strong> Esparsidade de 99,74% é o número que motiva todo o trabalho. Se você explicar este slide bem, a plateia entende por que SVD existe. É o "por quê" antes do "como".
+</div>
+
+<h2>O que é esparsidade</h2>
+
+<p>
+  Imagine uma planilha com um usuário por linha e um filme por coluna. Cada célula poderia
+  receber uma nota. A <strong>esparsidade</strong> é a fração de células que ficam em branco —
+  pares usuário-filme que nunca foram avaliados.
+</p>
+
+<div class="formula-box">
+  <div class="formula">esparsidade = 1 − (avaliações observadas / total de pares possíveis)</div>
+</div>
+
+<h2>Calculando a esparsidade do MovieLens 25M</h2>
+
+<div class="calc-block">
+  <span class="step-title">Total de pares possíveis</span>
+  Usuários × Filmes = 162.541 × 59.047 = <span class="highlight">9.597.538.027</span>
+  <br>≈ 9,6 bilhões de pares
+
+  <br><br>
+
+  <span class="step-title">Avaliações observadas</span>
+  25.000.095 avaliações
+
+  <br><br>
+
+  <span class="step-title">Esparsidade</span>
+  esparsidade = 1 − (25.000.095 / 9.597.538.027)<br>
+  = 1 − 0,002604<br>
+  = <span class="highlight">0.9974</span> = <strong>99,74%</strong>
+
+  <br><br>
+
+  <span class="step-title">Ou equivalentemente: densidade</span>
+  densidade = 25.000.095 / 9.597.538.027 ≈ <span class="highlight">0,26%</span>
+  <br>→ Cada usuário avaliou em média 0,26% do catálogo.
+</div>
+
+<h2>Visualizando: uma grade 10×10 com 99,74% de vazio</h2>
+
+<p>
+  Se a matriz fosse 10×10 (100 células), com densidade de 0,26% teríamos
+  <strong>menos de 1 célula preenchida</strong>. Na grade abaixo, 97 células estão
+  vazias e apenas 3 têm avaliação — e nossa matriz real é muito pior que isso:
+</p>
+
+<div class="sparse-grid" id="sparseGrid"></div>
+
+<div class="callout">
+  <strong>Intuição para o slide:</strong> Se você já assistiu ~100 filmes em plataformas de streaming,
+  e o catálogo tem 59.047 filmes, você avaliou apenas 0,17% do catálogo — nem chegamos à média do dataset.
+  Dois usuários quaisquer raramente assistiram os mesmos filmes.
+</div>
+
+<h2>Por que 99,74% de esparsidade quebra a similaridade direta</h2>
+
+<p>
+  A similaridade de cosseno entre dois usuários requer filmes em comum. Com esparsidade tão alta:
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Exemplo: quantos filmes dois usuários têm em comum?</span>
+  Usuário A avaliou: 153 filmes (média do dataset)<br>
+  Usuário B avaliou: 153 filmes<br><br>
+
+  Probabilidade de um filme qualquer ser avaliado por ambos:<br>
+  P(A avalia) × P(B avalia) = 0.0026 × 0.0026 ≈ 0.0000068<br><br>
+
+  Filmes em comum esperados (de 59.047):<br>
+  59.047 × 0.0000068 ≈ <span class="highlight">0,4 filmes</span>
+  <br><br>
+  → Na média, dois usuários compartilham <strong>menos de 1 filme</strong> em comum.
+  A similaridade de cosseno seria calculada com base em quase nada.
+</div>
+
+<p>
+  É por isso que usamos <strong>fatoração de matrizes</strong>: em vez de comparar usuários diretamente,
+  aprendemos representações densas (vetores latentes) que permitem inferir similaridade mesmo sem
+  histórico compartilhado.
+</p>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    Uma matriz tem 1.000 usuários, 500 filmes, e 2.500 avaliações. Qual é a esparsidade?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> 0.50%  (esparsidade = avaliações / usuários)</label></li>
+    <li><label><input type="radio" name="q1" value="b"> 99.50%  (esparsidade = 1 − 2500/500000)</label></li>
+    <li><label><input type="radio" name="q1" value="c"> 2.50%   (esparsidade = avaliações / filmes)</label></li>
+    <li><label><input type="radio" name="q1" value="d"> 97.50%  (esparsidade = 1 − 2500/100000)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Por que similaridade direta entre usuários (user-user CF) é instável com 99,74% de esparsidade?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> Porque o produto escalar de dois vetores esparsos é sempre zero</label></li>
+    <li><label><input type="radio" name="q2" value="b"> Porque dois usuários raramente avaliaram os mesmos filmes, então a similaridade é calculada sobre quase nenhum dado em comum — resultado instável e não generalizável</label></li>
+    <li><label><input type="radio" name="q2" value="c"> Porque a memória RAM não comporta a matriz de 9,6 bilhões de entradas</label></li>
+    <li><label><input type="radio" name="q2" value="d"> Porque usuários com histórico curto recebem vetores latentes de baixa qualidade</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Em uma frase</h3>
+  <p class="quiz-q">
+    Qual é a frase mais precisa para abrir o Slide 3 durante a apresentação?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> "O dataset tem 25 milhões de avaliações, então há dados mais do que suficientes para qualquer modelo funcionar bem."</label></li>
+    <li><label><input type="radio" name="q3" value="b"> "De 9,6 bilhões de pares possíveis, apenas 25 milhões foram avaliados — 99,74% de células em branco. Qualquer método que dependa de histórico compartilhado entre usuários se torna instável nesse cenário."</label></li>
+    <li><label><input type="radio" name="q3" value="c"> "A esparsidade de 99,74% significa que o modelo não tem dados suficientes para aprender e por isso o RMSE é alto."</label></li>
+    <li><label><input type="radio" name="q3" value="d"> "Cada usuário avaliou em média 153 filmes, o que é suficiente para calcular similaridades confiáveis."</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode calcular a esparsidade do seu próprio exemplo favorito, ou explicar como o ALS lida melhor com a esparsidade do que o SVD clássico.
+</div>
+
+<footer>
+  <p>Veja também: <a href="0003-centralizacao-svd.html">Lição 3 — Centralização</a> · <a href="0002-split-temporal.html">Lição 2 — Split Temporal</a></p>
+</footer>
+
+<script>
+  // Render sparse grid
+  const grid = document.getElementById('sparseGrid');
+  const filled = new Set([12, 45, 73]);
+  for (let i = 0; i < 100; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell ' + (filled.has(i) ? 'cell-filled' : 'cell-empty');
+    cell.textContent = filled.has(i) ? '★' : '·';
+    grid.appendChild(cell);
+  }
+
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. Total de pares = 1000 × 500 = 500.000. Esparsidade = 1 − 2500/500000 = 1 − 0.005 = 0.995 = 99.5%. Sempre divida pelo produto usuários × filmes, não por uma das dimensões individualmente.' },
+      default: { type: 'incorrect', text: 'Não. Esparsidade = 1 − (avaliações / total de pares possíveis). Total de pares = usuários × filmes = 1000 × 500 = 500.000. Esparsidade = 1 − 2500/500.000 = 99.5%.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Com 99,74% de esparsidade, dois usuários aleatórios compartilham em média menos de 1 filme. Calcular similaridade com 0 ou 1 ponto em comum é estatisticamente inútil — o resultado seria ruído puro.' },
+      default: { type: 'incorrect', text: 'Não. O problema não é matemático (produto escalar de vetores esparsos pode ser não-zero) nem de memória (matrizes esparsas são armazenadas de forma eficiente). O problema é de dados: sem filmes em comum, a similaridade não tem base estatística.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto. Esta frase conecta o número (9,6 bilhões vs 25 milhões) à consequência (métodos de similaridade direta ficam instáveis), que motiva a escolha pelo SVD. É exatamente o raciocínio do roteiro.' },
+      default: { type: 'incorrect', text: 'Não. A opção (A) é otimista demais (25 milhões parece muito, mas é 0,26% do possível). A (C) confunde esparsidade com impossibilidade de aprender. A (D) inverte a conclusão — 153 filmes de 59.047 não é suficiente para overlap com outros usuários.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 4 — Precision@10: Qualidade do Ranking</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.1rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-orange { background: #fff3e0; border-left: 3px solid #ff9800; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .rank-table td:first-child { text-align: left; }
+    .rel { background: #e6f4ea !important; }
+    .nrel { background: #fdecea !important; }
+    .tag { display: inline-block; font-size: 0.75rem; padding: 0.1rem 0.5rem; border-radius: 10px; font-family: "Helvetica Neue", Arial, sans-serif; font-weight: bold; }
+    .tag-rel { background: #c8e6c9; color: #1b5e20; }
+    .tag-nrel { background: #ffcdd2; color: #7f0000; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 4 · Slide 9 · PO-233 Aprendizado de Máquina</span>
+  <h1>Precision@10 —<br>Qualidade do Ranking</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Por que importa:</strong> Precision@10 = 0,57 mede se o modelo coloca filmes bons no topo da lista. É diferente do RMSE — não mede o erro na nota, mas se a <em>ordem</em> das recomendações faz sentido.
+</div>
+
+<h2>A fórmula</h2>
+
+<div class="formula-box">
+  <div class="formula">Precision@k = |top-k ∩ relevantes| / k</div>
+</div>
+
+<p>
+  Em português: dos <strong>k filmes recomendados</strong>, quantos são de fato relevantes para o usuário?
+</p>
+
+<p>
+  No nosso trabalho:
+  <br>• <strong>k = 10</strong> (recomendamos 10 filmes)
+  <br>• <strong>Relevante</strong> = nota real ≥ 4.0 no conjunto de teste
+  <br>• <strong>Candidatos</strong> = apenas filmes que o usuário avaliou no teste (para ter nota real conhecida)
+</p>
+
+<h2>Exemplo numérico — um usuário</h2>
+
+<p>
+  Suponha que no conjunto de teste, um usuário avaliou 15 filmes.
+  O modelo gera um ranking dos 10 mais recomendados entre esses 15:
+</p>
+
+<table class="rank-table">
+  <thead>
+    <tr><th>Posição</th><th>Filme recomendado</th><th>Nota real do usuário</th><th>Relevante? (≥ 4.0)</th></tr>
+  </thead>
+  <tbody>
+    <tr class="rel"><td>1</td><td>Parasite</td><td>5.0</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="rel"><td>2</td><td>Portrait of a Lady on Fire</td><td>4.5</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="nrel"><td>3</td><td>Avengers: Endgame</td><td>3.0</td><td><span class="tag tag-nrel">NÃO</span></td></tr>
+    <tr class="rel"><td>4</td><td>The Lighthouse</td><td>4.0</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="rel"><td>5</td><td>Moonlight</td><td>4.5</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="nrel"><td>6</td><td>Fast & Furious 8</td><td>2.5</td><td><span class="tag tag-nrel">NÃO</span></td></tr>
+    <tr class="rel"><td>7</td><td>Roma</td><td>4.0</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="rel"><td>8</td><td>Get Out</td><td>4.5</td><td><span class="tag tag-rel">SIM</span></td></tr>
+    <tr class="nrel"><td>9</td><td>Transformers 5</td><td>1.5</td><td><span class="tag tag-nrel">NÃO</span></td></tr>
+    <tr class="rel"><td>10</td><td>The Favourite</td><td>4.0</td><td><span class="tag tag-rel">SIM</span></td></tr>
+  </tbody>
+</table>
+
+<div class="calc-block">
+  <span class="step-title">Precision@10 para este usuário</span>
+  Filmes relevantes no top-10: Parasite, Portrait, Lighthouse, Moonlight, Roma, Get Out, Favourite<br>
+  Contagem: <span class="highlight">7</span> relevantes de 10 recomendados<br><br>
+  Precision@10 = 7 / 10 = <span class="highlight">0.70</span>
+</div>
+
+<h2>Média sobre 200 usuários</h2>
+
+<p>
+  No trabalho avaliamos 200 usuários. Para cada um calculamos a Precision@10 individualmente
+  e tiramos a média:
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Média sobre n usuários</span>
+  Precision@10_global = (P@10_user1 + P@10_user2 + ... + P@10_user200) / 200<br><br>
+  Resultado do nosso modelo: <span class="highlight">0.5743</span>
+  <br><br>
+  <span style="color:#666">→ Em média, 5,7 dos 10 filmes recomendados são relevantes para o usuário.</span>
+</div>
+
+<h2>Por que restringimos os candidatos ao conjunto de teste?</h2>
+
+<div class="callout-orange">
+  <strong>Decisão metodológica importante:</strong> Os candidatos são apenas os filmes que o usuário avaliou no teste — não o catálogo inteiro de 12.315 filmes.
+  <br><br>
+  <strong>Motivo:</strong> Se usássemos o catálogo inteiro, 99%+ dos filmes não teriam nota real conhecida — não saberíamos se são relevantes ou não. Isso tornaria a métrica impossível de calcular corretamente.
+  <br><br>
+  <strong>Limitação:</strong> Isso torna a Precision@10 otimista — o modelo escolhe entre candidatos que o usuário já viu e avaliou, não entre todos os filmes do mundo.
+</div>
+
+<h2>Como interpretar 0,57?</h2>
+
+<p>
+  Para ter referência, o que seria um modelo <em>aleatório</em>? Se a proporção de notas ≥ 4.0
+  no conjunto de teste for ~50%, um modelo que recomenda aleatoriamente teria Precision@10 ≈ 0.50.
+  Nosso modelo com 0,57 supera o aleatório — mas a margem não é enorme, o que é esperado
+  dado que restringimos os candidatos ao teste (muitos candidatos já eram relevantes por definição).
+</p>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    Um modelo recomenda 10 filmes. Dos 10, 4 têm nota real ≥ 4.0 e 6 têm nota &lt; 4.0.
+    Qual é a Precision@10?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> 0.60  (6 não relevantes dividido por 10)</label></li>
+    <li><label><input type="radio" name="q1" value="b"> 0.40  (4 relevantes dividido por 10)</label></li>
+    <li><label><input type="radio" name="q1" value="c"> 4.00  (soma das notas dos relevantes)</label></li>
+    <li><label><input type="radio" name="q1" value="d"> 0.67  (4 relevantes dividido por 6 não relevantes)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Por que a Precision@10 é uma métrica diferente do RMSE para avaliar o modelo?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> Porque o RMSE só funciona para modelos lineares e a Precision@10 é geral</label></li>
+    <li><label><input type="radio" name="q2" value="b"> Porque o RMSE mede precisão na predição de notas, enquanto a Precision@10 mede qualidade do ranking — se os filmes certos chegam ao topo da lista</label></li>
+    <li><label><input type="radio" name="q2" value="c"> Porque a Precision@10 sempre será maior que o RMSE para bons modelos</label></li>
+    <li><label><input type="radio" name="q2" value="d"> Porque o RMSE usa o conjunto de treino e a Precision@10 usa o conjunto de validação</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Pergunta da banca</h3>
+  <p class="quiz-q">
+    "A Precision@10 de 0,57 é boa?" Como você responde de forma honesta?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Sim, é ótima — supera qualquer baseline possível com margem ampla</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Sim, supera o modelo aleatório, mas a métrica é otimista pois candidatos são restritos ao teste — com o catálogo completo o valor seria menor</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Não, é ruim — um modelo útil deveria ter Precision@10 acima de 0,80</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Impossível dizer — Precision@10 não tem baseline de referência</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode explicar outras métricas de ranking como Recall@k, NDCG, ou MAP, e como elas se relacionam com a Precision@10.
+</div>
+
+<footer>
+  <p>Veja também: <a href="0005-rmse-mae.html">Lição 5 — RMSE e MAE</a> · <a href="0001-esparsidade.html">Lição 1 — Esparsidade</a></p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. Precision@k = relevantes_no_top_k / k = 4 / 10 = 0.40. Simples: quantos dos k recomendados são bons.' },
+      default: { type: 'incorrect', text: 'Não. Precision@k = número de relevantes no top-k, dividido por k. Relevante aqui = nota ≥ 4.0. São 4 relevantes em 10 recomendações → 4/10 = 0.40.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Um modelo pode ter RMSE baixo (acertar bem as notas) mas Precision@10 medíocre (não colocar os melhores filmes no topo da lista). São aspectos complementares: qualidade de estimativa vs. qualidade de ordenação.' },
+      default: { type: 'incorrect', text: 'Não. A diferença é o que cada métrica mede: RMSE mede o erro na estimativa de nota (regressão), enquanto Precision@10 mede se os filmes mais relevantes ficam entre os top-10 recomendados (ranking).' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto e honesto. 0,57 > ~0,50 (aleatório) indica que o modelo aprende algo real. Mas a restrição dos candidatos ao teste inflaciona o valor — o modelo escolhe entre um conjunto pequeno de filmes que o usuário já viu, não entre o catálogo inteiro. Essa limitação está reconhecida no Slide 11.' },
+      default: { type: 'incorrect', text: 'A resposta (B) é a mais honesta. Reconhecer a limitação metodológica (candidatos restritos) junto com o resultado positivo (supera aleatório) é a resposta que a banca quer ouvir — mostra maturidade acadêmica.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

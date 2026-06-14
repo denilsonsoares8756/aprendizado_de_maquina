@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 3 — RMSE e MAE: Calculando o Erro do Modelo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    .dim { color: #888; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.1rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    td.err { background: #fff3e0 !important; }
+    td.err2 { background: #fce4ec !important; }
+    td.res { font-weight: bold; color: #c0392b; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 3 · Slide 8 · PO-233 Aprendizado de Máquina</span>
+  <h1>RMSE e MAE —<br>Calculando o Erro do Modelo</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Por que importa:</strong> RMSE = 0,96 é o resultado principal do trabalho. A banca vai perguntar o que esse número significa e por que ele é bom. Esta lição te dá o cálculo na mão.
+</div>
+
+<h2>As duas métricas lado a lado</h2>
+
+<div class="formula-box">
+  <div class="formula">MAE  = (1/n) × Σ |rᵤᵢ − r̂ᵤᵢ|</div>
+</div>
+<div class="formula-box" style="margin-top:0.5rem">
+  <div class="formula">RMSE = √[ (1/n) × Σ (rᵤᵢ − r̂ᵤᵢ)² ]</div>
+</div>
+
+<p>
+  Onde <strong>rᵤᵢ</strong> é a nota real do usuário u no filme i, e <strong>r̂ᵤᵢ</strong> é a nota predita pelo modelo.
+  A diferença: o MAE trata todos os erros igualmente; o RMSE <em>penaliza erros grandes desproporcionalmente</em>
+  por elevar ao quadrado antes de tirar a raiz.
+</p>
+
+<h2>Exemplo numérico — 5 predições</h2>
+
+<p>Suponha que o modelo fez 5 predições no conjunto de teste:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Usuário/Filme</th>
+      <th>Nota real (r)</th>
+      <th>Nota predita (r̂)</th>
+      <th class="err">Erro = r − r̂</th>
+      <th class="err">|Erro|</th>
+      <th class="err2">Erro²</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Ana / Titanic</td><td>5.0</td><td>4.5</td><td class="err">0.5</td><td class="err">0.5</td><td class="err2">0.25</td></tr>
+    <tr><td>Ana / Matrix</td><td>4.0</td><td>4.2</td><td class="err">−0.2</td><td class="err">0.2</td><td class="err2">0.04</td></tr>
+    <tr><td>Bruno / Toy Story</td><td>3.0</td><td>2.5</td><td class="err">0.5</td><td class="err">0.5</td><td class="err2">0.25</td></tr>
+    <tr><td>Bruno / Gladiador</td><td>4.0</td><td>3.9</td><td class="err">0.1</td><td class="err">0.1</td><td class="err2">0.01</td></tr>
+    <tr><td>Carla / Avatar</td><td>2.0</td><td>4.0</td><td class="err">−2.0</td><td class="err">2.0</td><td class="err2">4.00</td></tr>
+    <tr><td colspan="3"><strong>Soma</strong></td><td class="err"><strong>—</strong></td><td class="err"><strong>3.3</strong></td><td class="err2"><strong>4.55</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>Calculando o MAE</h3>
+
+<div class="calc-block">
+  <span class="step-title">MAE = média dos |erros|</span>
+  MAE = (0.5 + 0.2 + 0.5 + 0.1 + 2.0) / 5<br>
+  MAE = 3.3 / 5<br>
+  MAE = <span class="highlight">0.66</span>
+
+  <br><br>
+  <span class="dim">Interpretação: o modelo erra em média 0,66 estrelas por predição.</span>
+</div>
+
+<h3>Calculando o RMSE</h3>
+
+<div class="calc-block">
+  <span class="step-title">RMSE = raiz da média dos erros²</span>
+  Média dos erros² = (0.25 + 0.04 + 0.25 + 0.01 + 4.00) / 5<br>
+  = 4.55 / 5<br>
+  = 0.91<br><br>
+  RMSE = √0.91 ≈ <span class="highlight">0.954</span>
+</div>
+
+<div class="callout">
+  <strong>Por que RMSE > MAE?</strong> A predição de Carla no Avatar errou 2.0 pontos — um erro grande. O RMSE eleva isso ao quadrado (4.0) antes de calcular a média, penalizando mais esse erro. O MAE o trata igualmente aos outros. Por isso RMSE ≥ MAE sempre.
+</div>
+
+<h2>O que significa RMSE = 0,96 no nosso modelo real?</h2>
+
+<p>
+  Sobre os 4,9 milhões de avaliações do conjunto de teste, o modelo erra em média
+  <strong>0,96 estrelas</strong> por predição. A escala vai de 0,5 a 5,0 (intervalo de 4,5 pontos),
+  então um erro médio de ~1 estrela representa ~22% do intervalo — razoável para um SVD básico.
+</p>
+
+<h2>Comparando com o baseline ingênuo</h2>
+
+<p>
+  O <strong>baseline ingênuo</strong> é predizer sempre a média global do treino (~3,53) para qualquer usuário e filme. Seu RMSE é aproximadamente igual ao desvio padrão das notas:
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Por que RMSE do baseline ≈ desvio padrão?</span>
+  Se predizemos sempre μ_global, o erro de cada predição é (rᵤᵢ − μ_global).<br>
+  RMSE_baseline = √[ Σ(rᵤᵢ − μ_global)² / n ] = desvio padrão das notas ≈ <span class="highlight">1.02</span>
+</div>
+
+<table>
+  <thead>
+    <tr><th>Modelo</th><th>RMSE</th><th>MAE</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Baseline ingênuo (média global)</td><td>≈ 1.02</td><td>≈ 0.84</td></tr>
+    <tr><td>SVD <strong>sem</strong> centralização</td><td>3.43</td><td>3.28</td></tr>
+    <tr><td>SVD <strong>com</strong> centralização</td><td><strong>0.96</strong></td><td><strong>0.72</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>A redução de 72%</h3>
+
+<div class="calc-block">
+  <span class="step-title">Redução percentual no RMSE</span>
+  Redução = (3.43 − 0.96) / 3.43 × 100%<br>
+  = 2.47 / 3.43 × 100%<br>
+  = <span class="highlight">72%</span>
+</div>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    Um modelo tem dois erros: predição A errou 0,5 estrelas, predição B errou 2,0 estrelas.
+    Qual métrica pune proporcionalmente mais o erro de B?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> MAE, porque usa valor absoluto</label></li>
+    <li><label><input type="radio" name="q1" value="b"> RMSE, porque eleva ao quadrado antes de calcular a média</label></li>
+    <li><label><input type="radio" name="q1" value="c"> As duas métricas punem igualmente erros grandes</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Depende do número total de predições</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Nosso modelo com centralização tem RMSE = 0,96 e o baseline ingênuo tem RMSE = 1,02.
+    O que isso prova sobre o modelo?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> Que o SVD é 72% melhor que qualquer outro modelo de recomendação</label></li>
+    <li><label><input type="radio" name="q2" value="b"> Que o modelo captura preferências individuais além da tendência central — supera predizer sempre a média global</label></li>
+    <li><label><input type="radio" name="q2" value="c"> Que o modelo nunca erra mais de 0,96 estrelas em nenhuma predição</label></li>
+    <li><label><input type="radio" name="q2" value="d"> Que o desvio padrão das notas do dataset é 0,96</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Cálculo direto</h3>
+  <p class="quiz-q">
+    Três predições com erros: 1.0, 0.0, 1.0. Qual é o RMSE?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> 0.667  (média dos erros absolutos)</label></li>
+    <li><label><input type="radio" name="q3" value="b"> 0.816  (raiz de 0.667)</label></li>
+    <li><label><input type="radio" name="q3" value="c"> 1.000  (raiz de 1.0 que é a média dos erros²)</label></li>
+    <li><label><input type="radio" name="q3" value="d"> 0.577  (desvio padrão amostral dos erros)</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode mostrar por que RMSE = desvio padrão para o baseline ingênuo, ou simular mais perguntas da banca sobre interpretação de RMSE.
+</div>
+
+<footer>
+  <p>Veja também: <a href="0003-centralizacao-svd.html">Lição 3 — Centralização por Usuário</a> · <a href="0006-precision-at-k.html">Lição 6 — Precision@10</a></p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. O erro de B (2.0) elevado ao quadrado vira 4.0. O erro de A (0.5) vira 0.25. O RMSE dá peso 16x maior ao erro de B. O MAE os pesa 4x (2.0 vs 0.5) — proporcional ao erro, não ao quadrado.' },
+      default: { type: 'incorrect', text: 'Não. O RMSE eleva os erros ao quadrado, então um erro 4x maior se torna 16x mais pesado na conta. O MAE usa valor absoluto — um erro 4x maior pesa exatamente 4x mais.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. RMSE 0,96 < RMSE baseline 1,02 significa que o modelo é mais preciso do que ignorar completamente as preferências individuais. O modelo aprendeu algo real sobre os usuários — não apenas reproduziu a média global.' },
+      default: { type: 'incorrect', text: 'Não. O RMSE é uma média — predições individuais podem ter erros maiores. A comparação com o baseline mostra que o modelo supera a estratégia mais simples possível, evidenciando que os fatores latentes capturam preferências reais.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto. Erros² = [1.0, 0.0, 1.0]. Média dos erros² = (1.0 + 0.0 + 1.0)/3 = 0.667. RMSE = √0.667 ≈ 0.816. Cuidado: MAE seria (1.0 + 0.0 + 1.0)/3 = 0.667 — diferente do RMSE.' },
+      default: { type: 'incorrect', text: 'Não. Passo a passo: erros² = [1², 0², 1²] = [1, 0, 1]. Média = 2/3 = 0.667. RMSE = √0.667 ≈ 0.816. A opção (C) erraria ao calcular a média dos erros sem elevar ao quadrado antes.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>
