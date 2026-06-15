@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 10 — O Baseline Ingênuo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-red { background: #fdecea; border-left: 3px solid #e57373; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .bar-wrap { margin: 1.5rem 0; }
+    .bar-row { display: flex; align-items: center; gap: 0.8rem; margin: 0.5rem 0; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.88rem; }
+    .bar-label { width: 160px; text-align: right; flex-shrink: 0; }
+    .bar { height: 22px; border-radius: 2px; display: flex; align-items: center; padding-left: 6px; color: white; font-size: 0.8rem; font-weight: bold; }
+    .bar-bad  { background: #e57373; }
+    .bar-mid  { background: #ffb74d; }
+    .bar-good { background: #66bb6a; }
+    .bar-base { background: #90a4ae; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 10 · Slide 8 · PO-233 Aprendizado de Máquina</span>
+  <h1>O Baseline Ingênuo —<br>O Piso Mínimo de Qualquer Modelo</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Por que importa:</strong> O baseline ingênuo é a régua que dá sentido ao RMSE 0,96. Sem ele, você não sabe se 0,96 é bom ou ruim. A banca vai perguntar — você precisa explicar o que é, como se calcula, e por que o modelo de vocês supera por pouco.
+</div>
+
+<h2>O que é o baseline ingênuo</h2>
+
+<p>
+  É o modelo mais simples que se pode imaginar: <strong>ignora quem é o usuário,
+  ignora qual é o filme, e prediz sempre o mesmo número</strong> — a média global
+  de todas as avaliações do conjunto de treino.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Predição do baseline ingênuo para qualquer par (usuário, filme)</span>
+  r̂(u, i) = μ_global = 3,53  ← sempre, sem exceção
+</div>
+
+<p>
+  Não importa se é Ana avaliando Titanic ou Bruno avaliando Superbad — a predição
+  é sempre <strong>3,53</strong>. O modelo não aprendeu absolutamente nada sobre
+  preferências individuais.
+</p>
+
+<h2>Por que o RMSE do baseline ≈ desvio padrão das notas</h2>
+
+<p>Isso não é coincidência — é matemática:</p>
+
+<div class="calc-block">
+  <span class="step-title">RMSE do baseline</span>
+  RMSE = √[ (1/n) × Σ (r_ui − μ_global)² ]<br><br>
+  Mas isso é exatamente a definição de <strong>desvio padrão</strong> das notas!<br><br>
+  Desvio padrão das notas no MovieLens 25M ≈ <span class="highlight">1,02</span><br>
+  → RMSE_baseline ≈ <span class="highlight">1,0221</span> ✓
+</div>
+
+<div class="callout">
+  <strong>Intuição:</strong> o baseline erra exatamente o quanto as notas variam em torno da média. Se as pessoas sempre dessem 3,53, o baseline seria perfeito (RMSE = 0). Quanto mais as pessoas discordam da média global, pior o baseline — e maior o RMSE dele.
+</div>
+
+<h2>Calculando na mão: exemplo com 5 avaliações</h2>
+
+<table>
+  <thead>
+    <tr><th>Usuário/Filme</th><th>Nota real</th><th>Predição baseline</th><th>Erro²</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Ana / Titanic</td><td>5.0</td><td>3.53</td><td>(5.0−3.53)² = 2.16</td></tr>
+    <tr><td>Bruno / Matrix</td><td>2.0</td><td>3.53</td><td>(2.0−3.53)² = 2.34</td></tr>
+    <tr><td>Carla / Gladiador</td><td>4.0</td><td>3.53</td><td>(4.0−3.53)² = 0.22</td></tr>
+    <tr><td>Diego / Superbad</td><td>3.5</td><td>3.53</td><td>(3.5−3.53)² = 0.00</td></tr>
+    <tr><td>Elena / Titanic</td><td>1.5</td><td>3.53</td><td>(1.5−3.53)² = 4.12</td></tr>
+    <tr><td colspan="3"><strong>Média dos erros²</strong></td><td><strong>1.77</strong></td></tr>
+  </tbody>
+</table>
+
+<div class="calc-block">
+  <span class="step-title">RMSE do baseline neste exemplo</span>
+  RMSE = √1.77 = <span class="highlight">1.33</span><br><br>
+  <span style="color:#666">Neste exemplo a variância é maior que no dataset real (1,02) porque as notas
+  são mais extremas. No MovieLens 25M com 25 milhões de avaliações, a média se
+  estabiliza em 3,53 e o desvio em ~1,02.</span>
+</div>
+
+<h2>Por que superar o baseline por pouco não é vergonha</h2>
+
+<div class="bar-wrap">
+  <div class="bar-row">
+    <span class="bar-label">SVD sem centralização</span>
+    <div class="bar bar-bad" style="width:343px">3,43</div>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">Baseline ingênuo</span>
+    <div class="bar bar-base" style="width:102px">1,02</div>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">SVD com centralização</span>
+    <div class="bar bar-good" style="width:96px">0,96</div>
+  </div>
+</div>
+
+<p>
+  A margem sobre o baseline é pequena (0,96 vs 1,02) por uma razão estrutural:
+  o TruncatedSVD do sklearn não foi projetado para fatoração de matrizes de avaliação
+  — foi projetado para redução de dimensionalidade. Ele trata zeros ausentes como
+  notas reais, e a centralização mitiga isso mas não resolve completamente.
+</p>
+
+<div class="callout-red">
+  <strong>O resultado principal do trabalho não é "batemos o baseline".</strong>
+  É que a centralização por usuário reduziu o RMSE em 72% — de 3,43 para 0,96.
+  Isso transformou um modelo catastroficamente ruim em um modelo competitivo
+  com uma única mudança de pré-processamento.
+</div>
+
+<div class="callout-green">
+  <strong>Como responder à banca:</strong> "A margem sobre o baseline é pequena porque
+  o SVD com matrizes esparsas tem limitações estruturais que a centralização mitiga
+  mas não elimina. O ALS, listado como trabalho futuro, resolve o problema na raiz
+  e tipicamente atinge RMSE 0,85–0,90 em datasets similares."
+</div>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    Por que o RMSE do baseline ingênuo é aproximadamente igual ao desvio padrão das notas?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> Porque o baseline usa o desvio padrão internamente para ajustar a predição</label></li>
+    <li><label><input type="radio" name="q1" value="b"> Porque a fórmula do RMSE sobre predições constantes é idêntica à fórmula do desvio padrão — ambas medem dispersão em torno da média</label></li>
+    <li><label><input type="radio" name="q1" value="c"> Porque o MovieLens 25M foi construído para ter desvio padrão igual a 1,02 por design</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Porque o baseline normaliza as notas pelo desvio padrão antes de predizer</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Um modelo tem RMSE = 1,15 num dataset com desvio padrão das notas = 1,02.
+    O que isso significa sobre o modelo?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> O modelo é bom — RMSE abaixo de 2,0 é sempre aceitável em recomendação</label></li>
+    <li><label><input type="radio" name="q2" value="b"> O modelo é inútil — tem RMSE pior que o baseline ingênuo, então predizer sempre a média seria mais preciso</label></li>
+    <li><label><input type="radio" name="q2" value="c"> O modelo precisa de mais dados de treino para superar o baseline</label></li>
+    <li><label><input type="radio" name="q2" value="d"> O modelo está em overfitting porque o RMSE é maior que 1,0</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3 — Frase para a apresentação</h3>
+  <p class="quiz-q">
+    Qual frase explica corretamente o papel do baseline no slide de resultados?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> "O baseline mostra que 3,53 é a melhor predição possível para qualquer sistema de recomendação."</label></li>
+    <li><label><input type="radio" name="q3" value="b"> "O baseline é o piso mínimo de comparação — qualquer modelo útil precisa superá-lo; o nosso SVD com centralização atinge 0,96 contra 1,02 do baseline."</label></li>
+    <li><label><input type="radio" name="q3" value="c"> "O baseline ingênuo tem RMSE 1,02 porque foi treinado com menos dados que o SVD."</label></li>
+    <li><label><input type="radio" name="q3" value="d"> "Superamos o baseline em 72%, provando que o SVD é o melhor algoritmo para recomendação."</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode simular a pergunta da banca sobre o baseline, calcular o RMSE do baseline para outros datasets, ou explicar outros tipos de baseline (média por usuário, média por filme).
+</div>
+
+<footer>
+  <p>Veja também:
+    <a href="0005-rmse-mae.html">Lição 5 — RMSE e MAE</a> ·
+    <a href="0003-centralizacao-svd.html">Lição 3 — Centralização por Usuário</a> ·
+    <a href="0009-limitacoes-extensoes.html">Lição 9 — Limitações e Extensões</a>
+  </p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. RMSE_baseline = √[(1/n)Σ(r_ui − μ)²] é exatamente a definição de desvio padrão populacional. Quando a predição é sempre a média, o erro de cada predição é (r_ui − μ), e a raiz da média dos quadrados desses erros é o desvio padrão. Não é coincidência — é a mesma fórmula.' },
+      default: { type: 'incorrect', text: 'Não. O baseline não usa desvio padrão internamente — ele simplesmente prediz sempre μ_global. O que acontece é que a fórmula do RMSE aplicada a predições constantes colapsa para a fórmula do desvio padrão. São a mesma conta.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Se RMSE do modelo (1,15) > RMSE do baseline (1,02), o modelo é pior do que ignorar completamente os dados e predizer sempre a média. É o que aconteceu com o SVD sem centralização (RMSE 3,43) — um modelo complexo, treinado por horas, que perdia para "chute a média". O modelo com RMSE > desvio padrão das notas não deve ir para produção.' },
+      default: { type: 'incorrect', text: 'Não. RMSE abaixo de 2,0 não é um critério universal — depende do dataset. O critério correto é comparar com o baseline: se RMSE_modelo > RMSE_baseline, o modelo é inútil independente do valor absoluto. Overfitting não é detectado pelo RMSE isolado — requer comparar treino vs. validação.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto. Esta frase define o papel do baseline (piso mínimo), menciona os números concretos (0,96 vs 1,02) e não exagera a conclusão. É a frase que a banca quer ouvir — precisa, honesta, e que mostra entendimento do que a métrica significa.' },
+      default: { type: 'incorrect', text: 'Não. Opção A está errada (o baseline não é o melhor possível — é o mais simples). Opção C está errada (o baseline não é treinado, só calcula μ). Opção D confunde duas coisas: a redução de 72% é de SVD sem centralização para SVD com centralização, não uma comparação com o baseline.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>
