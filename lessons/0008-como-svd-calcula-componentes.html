@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 8 — Como o SVD Calcula os Pesos dos Filmes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    .blue { color: #1a237e; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .formula-box { text-align: center; margin: 1.5rem 0; font-size: 1.05rem; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.6rem 1.4rem; background: #fff; font-family: "Courier New", monospace; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-blue { background: #e8eaf6; border-left: 3px solid #3949ab; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-orange { background: #fff3e0; border-left: 3px solid #ff9800; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .pos { color: #1b5e20; font-weight: bold; }
+    .neg { color: #7f0000; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 8 · SVD Internals · PO-233 Aprendizado de Máquina</span>
+  <h1>Como o SVD Calcula<br>os Pesos dos Filmes</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Foco:</strong> Na Lição 7 os pesos dos filmes (+0.58, −0.50...) foram dados prontos. Aqui você vai ver de onde eles vêm — o SVD os obtém calculando os autovetores da matriz de correlação entre filmes R̃ᵀR̃.
+</div>
+
+<h2>O exemplo mínimo: 3 usuários, 2 filmes</h2>
+
+<p>
+  Para fazer o cálculo caber na mão, usamos apenas 2 filmes — Titanic e Gladiador —
+  com 3 usuários já centralizados:
+</p>
+
+<table>
+  <thead>
+    <tr><th></th><th>Titanic</th><th>Gladiador</th></tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Ana</strong></td><td>+1.0</td><td>−1.0</td></tr>
+    <tr><td><strong>Bruno</strong></td><td>−0.8</td><td>+0.8</td></tr>
+    <tr><td><strong>Carla</strong></td><td>+0.9</td><td>−0.9</td></tr>
+  </tbody>
+</table>
+
+<p>
+  Ana e Carla sempre deram notas opostas para Titanic e Gladiador. Bruno também — só que invertido.
+  O padrão é claro: quem gosta de um, não gosta do outro.
+</p>
+
+<h2>Passo 1 — Calcular R̃ᵀR̃: a matriz de correlação entre filmes</h2>
+
+<p>
+  O SVD precisa encontrar uma direção no espaço dos filmes que explique o máximo da variação dos usuários.
+  Para isso, calcula <strong>R̃ᵀR̃</strong> — uma matriz filmes × filmes onde cada entrada mede
+  o quanto dois filmes foram avaliados de forma parecida.
+</p>
+
+<div class="formula-box">
+  <div class="formula">(R̃ᵀR̃)[i, j] = Σ_u  r̃_ui × r̃_uj</div>
+</div>
+
+<p>Em português: multiplica as notas centralizadas de cada usuário para os dois filmes e soma.</p>
+
+<div class="calc-block">
+  <span class="step-title">(R̃ᵀR̃)[Titanic, Titanic] = soma dos quadrados da coluna Titanic</span>
+  Ana² + Bruno² + Carla²<br>
+  = (+1.0)² + (−0.8)² + (+0.9)²<br>
+  = 1.00 + 0.64 + 0.81 = <span class="highlight">2.45</span>
+
+  <br><br>
+
+  <span class="step-title">(R̃ᵀR̃)[Titanic, Gladiador] = produto entre as duas colunas</span>
+  Ana: (+1.0) × (−1.0) = −1.00<br>
+  Bruno: (−0.8) × (+0.8) = −0.64<br>
+  Carla: (+0.9) × (−0.9) = −0.81<br>
+  Soma = <span class="highlight">−2.45</span>
+
+  <br><br>
+
+  <span class="step-title">(R̃ᵀR̃)[Gladiador, Gladiador] = soma dos quadrados da coluna Gladiador</span>
+  (−1.0)² + (+0.8)² + (−0.9)² = 1.00 + 0.64 + 0.81 = <span class="highlight">2.45</span>
+</div>
+
+<p>A matriz R̃ᵀR̃ completa:</p>
+
+<table>
+  <thead><tr><th></th><th>Titanic</th><th>Gladiador</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Titanic</strong></td><td>+2.45</td><td>−2.45</td></tr>
+    <tr><td><strong>Gladiador</strong></td><td>−2.45</td><td>+2.45</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>O que essa matriz diz:</strong> a diagonal (+2.45) mostra que cada filme tem variação própria. A entrada cruzada (−2.45) é fortemente negativa — Titanic e Gladiador são avaliados em direções opostas por todos os usuários.
+</div>
+
+<h2>Passo 2 — Encontrar o autovetor de R̃ᵀR̃</h2>
+
+<p>
+  O <strong>autovetor</strong> (eigenvector) associado ao maior autovalor de R̃ᵀR̃ é o Componente 0.
+  Para uma matriz 2×2 simétrica da forma
+  <span style="font-family:monospace">[[a, b], [b, a]]</span>,
+  os autovetores são sempre <span style="font-family:monospace">[+1/√2, +1/√2]</span>
+  e <span style="font-family:monospace">[+1/√2, −1/√2]</span>.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Verificando o autovetor v = [+1/√2, −1/√2] ≈ [+0.707, −0.707]</span>
+  R̃ᵀR̃ × v = ?<br><br>
+
+  Linha Titanic:   (+2.45 × +0.707) + (−2.45 × −0.707) = 1.732 + 1.732 = <span class="highlight">+3.464</span><br>
+  Linha Gladiador: (−2.45 × +0.707) + (+2.45 × −0.707) = −1.732 − 1.732 = <span class="highlight">−3.464</span><br><br>
+
+  Resultado: [+3.464, −3.464] = <span class="highlight">4.90</span> × [+0.707, −0.707] ✓<br><br>
+
+  <span style="color:#666">→ O vetor [+0.707, −0.707] é de fato um autovetor com autovalor λ = 4.90.</span>
+</div>
+
+<div class="callout-green">
+  <strong>Este autovetor É o Componente 0:</strong><br>
+  Titanic:   <strong>+0.707</strong>  ← peso positivo (lado "drama")<br>
+  Gladiador: <strong>−0.707</strong>  ← peso negativo (lado "ação")<br><br>
+  O SVD não "adivinhou" esses pesos — eles foram derivados matematicamente da correlação entre as colunas da matriz.
+</div>
+
+<h2>O autovalor λ = 4.90 é a variância explicada</h2>
+
+<p>
+  O autovalor indica o quanto de variação da matriz esse componente captura.
+  A variância total da matriz é a soma de todos os autovalores.
+  Nesse caso com 2 filmes há 2 autovalores: λ₁ = 4.90 e λ₂ = 0.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Variância explicada pelo Componente 0</span>
+  λ₁ / (λ₁ + λ₂) = 4.90 / (4.90 + 0) = <span class="highlight">100%</span><br><br>
+
+  <span style="color:#666">Faz sentido: com apenas 2 filmes perfeitamente opostos, 1 componente explica tudo.
+  No modelo real com 12.315 filmes, 50 componentes explicam 18.10% — o restante é ruído.</span>
+</div>
+
+<h2>Por que o modelo real não faz isso na mão</h2>
+
+<p>
+  No modelo real, R̃ᵀR̃ tem <strong>12.315 × 12.315 = 151,7 milhões de entradas</strong>.
+  Calcular autovetores de uma matriz tão grande por álgebra direta é impraticável.
+  O <code>TruncatedSVD</code> do sklearn usa um algoritmo iterativo (ARPACK) que
+  encontra apenas os k maiores autovalores sem montar a matriz inteira.
+</p>
+
+<div class="callout-orange">
+  <strong>O que o código faz sob o capô:</strong><br>
+  <code>svd.fit_transform(train_matrix_centered)</code><br><br>
+  1. Itera multiplicando vetores pela matriz R̃ (e R̃ᵀ) repetidamente<br>
+  2. Após cada iteração, o vetor converge para a direção do maior autovalor<br>
+  3. Subtrai esse componente e repete para o próximo<br>
+  4. Para após encontrar os 50 maiores — os restantes 12.265 são ignorados
+</div>
+
+<h2>Resumo: de onde vêm os pesos dos filmes</h2>
+
+<table>
+  <thead><tr><th>Etapa</th><th>O que acontece</th></tr></thead>
+  <tbody>
+    <tr><td>1. R̃ᵀR̃</td><td>Calcula correlação entre cada par de filmes</td></tr>
+    <tr><td>2. Autovetor</td><td>Encontra a direção que maximiza a variância dos usuários</td></tr>
+    <tr><td>3. item_factors[:, k]</td><td>São as componentes desse autovetor — um peso por filme</td></tr>
+    <tr><td>4. Repete k vezes</td><td>Cada componente captura o próximo padrão residual</td></tr>
+  </tbody>
+</table>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    A entrada (R̃ᵀR̃)[Titanic, Gladiador] = −2.45 é fortemente negativa. O que isso significa?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> Gladiador tem notas muito menores que Titanic no dataset</label></li>
+    <li><label><input type="radio" name="q1" value="b"> Usuários que deram nota acima da média para Titanic tenderam a dar nota abaixo da média para Gladiador</label></li>
+    <li><label><input type="radio" name="q1" value="c"> O produto escalar entre os vetores latentes de Titanic e Gladiador é negativo</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Titanic e Gladiador foram avaliados por usuários diferentes sem sobreposição</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    O autovalor λ = 4.90 do Componente 0 representa o quê?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> O número de usuários que avaliaram os filmes nesse componente</label></li>
+    <li><label><input type="radio" name="q2" value="b"> A quantidade de variação da matriz que esse componente consegue explicar</label></li>
+    <li><label><input type="radio" name="q2" value="c"> O peso máximo que qualquer filme pode ter nesse componente</label></li>
+    <li><label><input type="radio" name="q2" value="d"> O erro quadrático médio da reconstrução com esse componente</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3</h3>
+  <p class="quiz-q">
+    Por que o TruncatedSVD calcula apenas os 50 maiores componentes em vez de todos os 12.315?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Porque os primeiros 50 autovetores capturam os padrões mais consistentes; os demais capturam ruído individual que não deve ser memorizado</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Porque a sklearn limita o número máximo de componentes a 50 por padrão</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Porque os últimos componentes têm autovalores negativos e seriam prejudiciais ao modelo</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Porque os 50 componentes correspondem aos 50 gêneros de filme do MovieLens</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','a')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode mostrar a verificação do autovetor para o exemplo de 4 usuários × 6 filmes da Lição 7, ou explicar por que o autovetor do <em>menor</em> autovalor capturaria ruído em vez de padrão.
+</div>
+
+<footer>
+  <p>
+    <strong>Fonte primária:</strong>
+    <a href="https://www.youtube.com/watch?v=nbBvuuNVfco" target="_blank">Gilbert Strang — SVD (MIT OpenCourseWare)</a>
+    — derivação rigorosa de por que os autovetores de AᵀA são os vetores singulares direitos de A.
+  </p>
+  <p style="margin-top:0.8rem">
+    Veja também: <a href="0007-componentes-svd.html">Lição 7 — O que são os Componentes</a> · <a href="0003-centralizacao-svd.html">Lição 3 — Centralização por Usuário</a>
+  </p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. R̃ᵀR̃[i,j] = Σ_u r̃_ui × r̃_uj é a soma dos produtos das notas centralizadas. Se Ana deu +1.0 para Titanic e −1.0 para Gladiador, o produto é −1.0. Todos os usuários fizeram isso → soma grande e negativa. Isso é correlação negativa: os filmes são opostos nas preferências dos usuários.' },
+      default: { type: 'incorrect', text: 'Não. R̃ᵀR̃[i,j] mede correlação entre colunas da matriz centralizada — quantas vezes usuários que gostaram de i também gostaram de j. Negativo significa que quando um é alto o outro é baixo — padrão oposto de preferências.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. O autovalor de um autovetor de AᵀA mede a variância que esse componente captura na matriz A. Quanto maior o autovalor, mais "importante" é aquele componente. O TruncatedSVD ordena os componentes do maior para o menor autovalor — por isso o Componente 0 é sempre o mais importante.' },
+      default: { type: 'incorrect', text: 'Não. O autovalor não é um peso de filme nem um número de usuários. Ele quantifica a variância capturada por aquele autovetor. No nosso exemplo, λ=4.90 com apenas 2 filmes e 3 usuários — e 100% da variância é explicada por esse único componente.' }
+    },
+    q3: {
+      a: { type: 'correct', text: 'Correto. Os autovetores de R̃ᵀR̃ são ordenados por autovalor decrescente. Os primeiros capturam padrões fortes e consistentes entre muitos usuários. Os últimos capturam variações de 1 ou 2 usuários — ruído. Incluí-los causaria overfitting: o modelo memorizaria idiossincrasias individuais em vez de preferências generalizáveis.' },
+      default: { type: 'incorrect', text: 'Não. A sklearn permite qualquer k entre 1 e n_features. Os autovalores de R̃ᵀR̃ são sempre ≥ 0 (matriz semi-definida positiva) — nunca negativos. E 50 não tem relação com gêneros. A razão é puramente estatística: os primeiros 50 autovetores capturam padrões robustos; o restante é ruído.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

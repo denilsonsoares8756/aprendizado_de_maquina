@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 9 — Limitações e Extensões do Modelo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    .green { color: #1b5e20; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    td.left { text-align: left; }
+    .callout-red { background: #fdecea; border-left: 3px solid #e57373; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-blue { background: #e8eaf6; border-left: 3px solid #3949ab; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+    .lim-tag { display: inline-block; font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 10px; font-family: "Helvetica Neue", Arial, sans-serif; font-weight: bold; background: #ffcdd2; color: #7f0000; margin-bottom: 0.4rem; }
+    .ext-tag { display: inline-block; font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 10px; font-family: "Helvetica Neue", Arial, sans-serif; font-weight: bold; background: #c8e6c9; color: #1b5e20; margin-bottom: 0.4rem; }
+    .formula-box { text-align: center; margin: 1.2rem 0; }
+    .formula-box .formula { display: inline-block; border: 1px solid #bbb; border-radius: 3px; padding: 0.5rem 1.2rem; background: #fff; font-family: "Courier New", monospace; font-size: 0.95rem; }
+    .side { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 1.5rem 0; }
+    .side .panel { border: 1px solid #ddd; border-radius: 4px; padding: 0.9rem 1.1rem; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .panel-red { border-color: #e57373; background: #fff8f8; }
+    .panel-green { border-color: #81c784; background: #f8fff8; }
+    .panel h4 { font-size: 0.88rem; margin-bottom: 0.4rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 9 · Slide 11 · PO-233 Aprendizado de Máquina</span>
+  <h1>Limitações e Extensões<br>do Modelo SVD</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Foco:</strong> Entender tecnicamente cada limitação e extensão do Slide 11 — com cálculos concretos onde aplicável — para responder perguntas da banca com precisão.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ LIMITAÇÕES -->
+
+<h2>Limitação 1 — Cold Start</h2>
+<span class="lim-tag">LIMITAÇÃO</span>
+
+<p>
+  O SVD aprende um vetor latente de 50 dimensões para cada usuário e cada filme
+  <em>a partir das avaliações observadas no treino</em>. Um usuário novo não tem
+  nenhuma avaliação → não tem vetor latente → o modelo não consegue recomendar nada.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Por que não dá para "calcular" um vetor para usuário novo</span>
+  O vetor do usuário u é: user_factors[u] = R̃[u, :] × Vᵀ<br><br>
+  R̃[u, :] é a linha de avaliações centralizadas de u na matriz de treino.<br>
+  Se u nunca avaliou nada → R̃[u, :] = vetor de zeros → user_factors[u] = zero.<br><br>
+  Predição: r̂ = μ_u + <span class="highlight">0</span> · v_i = μ_u (média global, sem personalização)
+</div>
+
+<div class="callout-red">
+  <strong>Impacto real:</strong> um usuário que acabou de se cadastrar recebe a mesma recomendação que qualquer outro — os filmes mais populares globalmente. Sem personalização até acumular avaliações suficientes.
+</div>
+
+<div class="callout-green">
+  <strong>Extensão 2 mitiga isso:</strong> incorporar features de conteúdo (gênero, ano, tags) permite recomendar filmes novos e para usuários novos sem depender de avaliações. Um usuário que declara "gosto de drama" no cadastro já tem um perfil mínimo.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+
+<h2>Limitação 2 — SVD Estático</h2>
+<span class="lim-tag">LIMITAÇÃO</span>
+
+<p>
+  O TruncatedSVD faz uma decomposição única da matriz de treino. Quando um usuário
+  faz uma nova avaliação depois do treino, o modelo não atualiza — o vetor latente
+  dele permanece o mesmo de quando foi treinado.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Custo de retreinar do zero com cada nova avaliação</span>
+  Matriz de treino: 137.168 usuários × 12.315 filmes × 50 componentes<br>
+  TruncatedSVD com ARPACK: O(n × m × k) por iteração<br>
+  = O(137.168 × 12.315 × 50) ≈ <span class="highlight">84 bilhões de operações</span> por retreino<br><br>
+  Com 25M de novas avaliações por dia: retreinar em tempo real é inviável.
+</div>
+
+<div class="callout-green">
+  <strong>Extensão 1 mitiga isso:</strong> o ALS (<em>Alternating Least Squares</em>) pode atualizar o vetor de um único usuário em O(k² × n_avaliações_do_usuário) — muito mais barato do que retreinar tudo, pois mantém os vetores dos filmes fixos e só resolve o sistema linear para o usuário novo.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+
+<h2>Limitação 3 — 18,10% de variância explicada</h2>
+<span class="lim-tag">LIMITAÇÃO</span>
+
+<p>
+  50 componentes capturam apenas 18,10% da variância total da matriz centralizada.
+  O restante (81,9%) não foi modelado.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">O que significa cada % de variância</span>
+  Variância total da matriz R̃ ≈ soma de todos os autovalores de R̃ᵀR̃<br><br>
+  λ₁ + λ₂ + ... + λ₁₂₃₁₅ = variância total<br>
+  λ₁ + λ₂ + ... + λ₅₀   = 18.10% desse total<br><br>
+  → Os 50 componentes capturam os padrões de preferência mais <em>compartilhados</em>.<br>
+  → Os 12.265 componentes restantes capturam variações de nicho ou ruído individual.
+</div>
+
+<div class="side">
+  <div class="panel panel-red">
+    <h4>Por que 18% pode ser suficiente</h4>
+    <p>Com 99,74% de esparsidade, grande parte da variância é ruído de amostragem. Capturar mais variância pode significar <em>memorizar</em> padrões que não se generalizam.</p>
+  </div>
+  <div class="panel panel-green">
+    <h4>Por que pode ser insuficiente</h4>
+    <p>Preferências de nicho (filmes de arte obscuros, documentários específicos) ficam fora dos 50 componentes. Usuários com gostos incomuns são mal representados.</p>
+  </div>
+</div>
+
+<div class="callout-green">
+  <strong>Extensão 4:</strong> testar k = 100, 200, 500 e plotar RMSE de validação × k. O ponto onde a curva "achata" é o k ótimo. Custo: a matriz de similaridade item-item cresce como O(k × n²), então k maior tem custo computacional significativo.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+
+<h2>Limitação 4 — Precision@10 restrita ao teste</h2>
+<span class="lim-tag">LIMITAÇÃO</span>
+
+<p>
+  Como explicado na <a href="0006-precision-at-k.html">Lição 6</a>, os candidatos
+  para avaliação são apenas filmes que o usuário avaliou no teste — não o catálogo
+  inteiro de 12.315 filmes.
+</p>
+
+<div class="calc-block">
+  <span class="step-title">Por que isso infla a métrica</span>
+  Candidatos por usuário no teste: ~15–30 filmes<br>
+  Candidatos no catálogo completo: 12.315 filmes<br><br>
+  Com 15 candidatos e limiar 4.0: suponha 8 são relevantes (nota ≥ 4.0)<br>
+  Precision@10 máxima possível: min(10, 8) / 10 = <span class="highlight">0.80</span><br><br>
+  Com 12.315 candidatos: os 10 melhores precisam competir com muito mais filmes irrelevantes.<br>
+  Precision@10 real em produção seria <span class="highlight">muito menor</span> que 0.57.
+</div>
+
+<div class="callout-green">
+  <strong>Extensão 3 — Leave-one-out:</strong> para cada usuário, remove <em>uma</em> avaliação do treino, treina o modelo, e verifica se o item removido aparece no top-k recomendado. Os candidatos são todos os 12.315 filmes do catálogo — métrica muito mais realista, mas computacionalmente cara (requer retreinar n vezes).
+</div>
+
+<!-- ═══════════════════════════════════════════════════ EXTENSÕES -->
+
+<h2>Extensão 1 — ALS vs. SVD: a diferença técnica central</h2>
+<span class="ext-tag">EXTENSÃO</span>
+
+<p>
+  O SVD minimiza o erro sobre <strong>todas</strong> as entradas da matriz — incluindo os zeros ausentes, que são tratados como "nota zero". O ALS minimiza o erro <strong>apenas sobre as entradas observadas</strong>.
+</p>
+
+<div class="side">
+  <div class="panel panel-red">
+    <h4>Função de perda do SVD</h4>
+    <p style="font-family:monospace; font-size:0.85rem;">min Σ<sub>todos i,j</sub> (R̃[i,j] − uᵢᵀvⱼ)²</p>
+    <p>Inclui os ~9,57 bilhões de zeros ausentes. O modelo "aprende" que nota ausente = 0.</p>
+  </div>
+  <div class="panel panel-green">
+    <h4>Função de perda do ALS</h4>
+    <p style="font-family:monospace; font-size:0.85rem;">min Σ<sub>(i,j) observados</sub> (r[i,j] − uᵢᵀvⱼ)²</p>
+    <p>Ignora entradas ausentes. Zeros ausentes não contaminam o aprendizado.</p>
+  </div>
+</div>
+
+<div class="calc-block">
+  <span class="step-title">Como o ALS resolve: alternando entre fixar U e fixar V</span>
+  1. Inicializa V aleatoriamente<br>
+  2. Fixa V → resolve sistema linear para cada linha de U:<br>
+     uᵢ = (VᵀV + λI)⁻¹ Vᵀ rᵢ  <span style="color:#666">(só usa entradas observadas de i)</span><br>
+  3. Fixa U → resolve sistema linear para cada coluna de V<br>
+  4. Repete até convergir<br><br>
+  λ é regularização (evita overfitting). A centralização não é necessária porque<br>
+  o ALS não confunde zeros ausentes com notas zero.
+</div>
+
+<!-- ═══════════════════════════════════════════════════ -->
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    Por que cold start é um problema inerente à filtragem colaborativa pura — e não um bug do SVD especificamente?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> Porque o SVD não suporta matrizes com linhas de zeros numericamente</label></li>
+    <li><label><input type="radio" name="q1" value="b"> Porque toda filtragem colaborativa depende de histórico de avaliações para personalizar — sem histórico, qualquer método colaborativo não tem sinal para personalizar</label></li>
+    <li><label><input type="radio" name="q1" value="c"> Porque usuários novos têm média μ_u = 0, que distorce a predição</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Porque o split temporal exclui usuários com menos de 20 avaliações do treino</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Qual é a diferença técnica fundamental entre SVD e ALS que torna o ALS mais adequado para dados de avaliação?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> O ALS usa gradiente descendente enquanto o SVD usa decomposição algébrica direta</label></li>
+    <li><label><input type="radio" name="q2" value="b"> O ALS minimiza o erro apenas sobre entradas observadas, ignorando zeros ausentes; o SVD trata zeros ausentes como notas zero</label></li>
+    <li><label><input type="radio" name="q2" value="c"> O ALS é mais rápido porque usa menos componentes latentes que o SVD</label></li>
+    <li><label><input type="radio" name="q2" value="d"> O ALS não precisa de centralização porque usa escala logarítmica nas notas</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3</h3>
+  <p class="quiz-q">
+    A banca pergunta: "Por que não usar leave-one-out em vez de split temporal?" Como você responde?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Leave-one-out daria RMSE menor, o que tornaria nossos resultados melhores — mas decidimos ser conservadores</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Leave-one-out exige retreinar o modelo uma vez por usuário — com 162.540 usuários e cada treino levando minutos, o custo computacional seria proibitivo; é listado como trabalho futuro</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Leave-one-out não é compatível com dados temporais porque ignora a ordem das avaliações</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Leave-one-out só funciona para modelos baseados em conteúdo, não para filtragem colaborativa</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode simular qualquer pergunta da banca sobre limitações, detalhar a derivação da atualização de usuário no ALS, ou explicar como features de conteúdo seriam incorporadas ao modelo.
+</div>
+
+<footer>
+  <p>Veja também:
+    <a href="0003-centralizacao-svd.html">Lição 3 — Centralização</a> ·
+    <a href="0006-precision-at-k.html">Lição 6 — Precision@10</a> ·
+    <a href="0008-como-svd-calcula-componentes.html">Lição 8 — Como o SVD calcula componentes</a>
+  </p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. Filtragem colaborativa por definição usa o comportamento coletivo dos usuários para personalizar recomendações. Sem nenhum comportamento observado (histórico vazio), não há sinal de onde partir — independente do algoritmo. ALS, SVD, ou kNN de usuários sofrem do mesmo problema.' },
+      default: { type: 'incorrect', text: 'Não. O SVD processa zeros numericamente sem problema (TruncatedSVD é estável). E o split temporal não causa cold start — apenas define quais dados são treino/teste. O problema é conceitual: filtragem colaborativa precisa de histórico para personalizar, e usuários novos não têm histórico.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Esta é a diferença mais importante. O SVD minimiza ||R̃ − UVᵀ||² sobre todas as entradas, incluindo os ~9,57 bilhões de zeros que representam "não avaliou". O ALS minimiza o erro apenas onde há avaliações reais — os zeros ausentes simplesmente não entram na conta. Por isso o ALS não precisa de centralização para funcionar bem.' },
+      default: { type: 'incorrect', text: 'Não. O ALS não usa gradiente descendente (usa mínimos quadrados alternados — sistemas lineares exatos). A velocidade depende da implementação. E o ALS não usa escala logarítmica. A diferença fundamental é o tratamento dos zeros ausentes na função de perda.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto e completo. Leave-one-out avalia melhor (usa o catálogo inteiro como candidatos), mas exige n_usuários retreinos. Com 162.540 usuários e treino de ~10 minutos cada, seriam ~1.600 dias de computação sequencial — ou infraestrutura de cluster significativa. É a resposta honesta que reconhece a limitação metodológica sem fingir que é uma escolha técnica superior.' },
+      default: { type: 'incorrect', text: 'Não. Leave-one-out não garante RMSE menor — é uma métrica diferente (ranking, não erro de nota). E leave-one-out é compatível com dados temporais (remove a última avaliação de cada usuário em ordem temporal). A razão real é custo computacional: retreinar 162.540 vezes é proibitivo.' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>

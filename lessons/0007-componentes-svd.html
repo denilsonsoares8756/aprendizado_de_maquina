@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lição 7 — De onde vêm os Componentes do SVD</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: "Georgia", "Times New Roman", serif; font-size: 18px; line-height: 1.7; color: #111; background: #fffff8; max-width: 720px; margin: 0 auto; padding: 4rem 2rem 6rem; }
+    header { border-bottom: 1px solid #ccc; margin-bottom: 3rem; padding-bottom: 1rem; }
+    .label { font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: #888; font-family: "Helvetica Neue", Arial, sans-serif; }
+    h1 { font-size: 2rem; font-weight: normal; margin-top: 0.4rem; line-height: 1.2; }
+    h2 { font-size: 1.3rem; font-weight: normal; margin-top: 3rem; margin-bottom: 0.8rem; border-bottom: 1px solid #eee; padding-bottom: 0.3rem; }
+    h3 { font-size: 1rem; font-weight: bold; margin-top: 2rem; margin-bottom: 0.4rem; }
+    p { margin-top: 1rem; }
+    .mission-note { background: #f0f4ff; border-left: 3px solid #5570d4; padding: 0.8rem 1.2rem; margin: 2rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .calc-block { background: #fefefe; border: 1px solid #ddd; border-radius: 4px; padding: 1.5rem 2rem; margin: 1.5rem 0; font-family: "Courier New", monospace; font-size: 0.95rem; line-height: 1.9; }
+    .calc-block .step-title { font-family: "Georgia", serif; font-size: 0.85rem; color: #666; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.6rem; display: block; }
+    .highlight { color: #c0392b; font-weight: bold; }
+    .blue { color: #1a237e; font-weight: bold; }
+    .green { color: #1b5e20; font-weight: bold; }
+    table { border-collapse: collapse; margin: 1.5rem 0; width: 100%; font-size: 0.95rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem 0.9rem; text-align: center; }
+    th { background: #f5f5f0; font-weight: bold; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.85rem; }
+    tr:nth-child(even) td { background: #fafaf5; }
+    .callout { background: #f5f5f0; border-left: 3px solid #888; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-blue { background: #e8eaf6; border-left: 3px solid #3949ab; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .callout-green { background: #e6f4ea; border-left: 3px solid #81c784; padding: 0.8rem 1.2rem; margin: 1.5rem 0; font-size: 0.92rem; font-family: "Helvetica Neue", Arial, sans-serif; }
+    .quiz { background: #fffbf0; border: 1px solid #e8d88a; border-radius: 4px; padding: 1.5rem 2rem; margin: 2.5rem 0; }
+    .quiz h3 { margin-top: 0; font-size: 1rem; color: #7a6800; }
+    .quiz-q { font-style: italic; margin-bottom: 1rem; }
+    .options { list-style: none; margin-top: 0.8rem; }
+    .options li { margin: 0.5rem 0; }
+    .options label { display: flex; align-items: center; gap: 0.7rem; cursor: pointer; padding: 0.45rem 0.8rem; border-radius: 3px; border: 1px solid #ddd; background: #fff; transition: background 0.15s; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.95rem; }
+    .options label:hover { background: #f9f5e0; }
+    .options input[type="radio"] { accent-color: #5570d4; }
+    .quiz-feedback { display: none; margin-top: 1rem; padding: 0.7rem 1rem; border-radius: 3px; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.93rem; }
+    .quiz-feedback.correct { background: #e6f4ea; border: 1px solid #81c784; color: #1b5e20; }
+    .quiz-feedback.incorrect { background: #fdecea; border: 1px solid #e57373; color: #7f0000; }
+    .btn-check { margin-top: 1rem; padding: 0.45rem 1.2rem; background: #5570d4; color: #fff; border: none; border-radius: 3px; cursor: pointer; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .btn-check:hover { background: #3f54b5; }
+    .teacher-note { background: #eef6ff; border: 1px dashed #93c5fd; border-radius: 4px; padding: 0.8rem 1.2rem; margin-top: 3rem; font-size: 0.9rem; font-family: "Helvetica Neue", Arial, sans-serif; color: #1e3a5f; }
+    footer { margin-top: 5rem; padding-top: 1.5rem; border-top: 1px solid #ccc; font-size: 0.85rem; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; }
+    footer a { color: #5570d4; text-decoration: none; }
+
+    .matrix-eq { display: flex; align-items: center; gap: 0.8rem; margin: 1.5rem 0; flex-wrap: wrap; font-family: "Courier New", monospace; font-size: 0.9rem; }
+    .matrix-eq .op { font-size: 1.3rem; font-family: Georgia; color: #555; }
+    .matrix-box { border: 2px solid #aaa; border-radius: 3px; padding: 0.5rem 0.8rem; background: #fff; }
+    .matrix-box.blue-box { border-color: #3949ab; background: #e8eaf6; }
+    .matrix-box.red-box  { border-color: #c0392b; background: #fdecea; }
+    .matrix-box.green-box { border-color: #388e3c; background: #e6f4ea; }
+    .matrix-box table { margin: 0; font-size: 0.85rem; }
+    .matrix-box th, .matrix-box td { border: none; padding: 0.2rem 0.5rem; }
+    .matrix-label { font-size: 0.75rem; text-align: center; color: #666; font-family: "Helvetica Neue", Arial, sans-serif; margin-top: 0.3rem; }
+
+    .arrow-row { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; font-family: "Helvetica Neue", Arial, sans-serif; font-size: 0.9rem; }
+    .arrow { font-size: 1.5rem; color: #888; }
+  </style>
+</head>
+<body>
+
+<header>
+  <span class="label">Lição 7 · SVD Internals · PO-233 Aprendizado de Máquina</span>
+  <h1>De onde vêm os<br>Componentes do SVD</h1>
+</header>
+
+<div class="mission-note">
+  <strong>Foco:</strong> Entender o que é um componente SVD através de um exemplo numérico concreto com 4 usuários e 6 filmes — o mesmo processo que acontece com 137.168 usuários e 12.315 filmes no modelo real.
+</div>
+
+<h2>O ponto de partida: a matriz centralizada</h2>
+
+<p>
+  O SVD recebe a matriz R̃ já centralizada (cada nota menos a média do usuário).
+  Usamos um exemplo mínimo: <strong>4 usuários × 6 filmes</strong> com três gêneros.
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="2" style="background:#dde4f5">Drama</th>
+      <th colspan="2" style="background:#fde9d9">Ação</th>
+      <th colspan="2" style="background:#e4f5dd">Comédia</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>Titanic</th><th>Schindler</th>
+      <th>Gladiador</th><th>Die Hard</th>
+      <th>Hangover</th><th>Superbad</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><strong>Ana</strong></td><td>+1.0</td><td>+0.8</td><td>−0.8</td><td>−1.0</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Bruno</strong></td><td>−0.8</td><td>−1.0</td><td>+1.0</td><td>+0.8</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Carla</strong></td><td>+0.9</td><td>+0.7</td><td>−0.7</td><td>−0.9</td><td>0</td><td>0</td></tr>
+    <tr><td><strong>Diego</strong></td><td>0</td><td>0</td><td>0</td><td>0</td><td>+1.0</td><td>+0.8</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>O que os dados revelam:</strong> Ana e Carla preferem drama. Bruno prefere ação. Diego prefere comédia e é indiferente aos outros gêneros. Existem <strong>dois padrões independentes</strong> aqui — o SVD vai precisar de pelo menos 2 componentes para capturá-los.
+</div>
+
+<h2>O que o SVD faz: encontrar o padrão dominante</h2>
+
+<p>
+  O SVD pergunta: <em>"existe uma única direção — uma combinação dos 6 filmes — que explique a maior parte da variação entre os 4 usuários?"</em>
+</p>
+
+<p>
+  O padrão mais forte é a divisão drama vs. ação — três usuários contra um.
+  O SVD encontra isso primeiro como o <strong>Componente 0</strong>.
+</p>
+
+<h3>Componente 0 — "drama vs. ação"</h3>
+
+<div class="calc-block">
+  <span class="step-title">Vetor do Componente 0 — um peso para cada filme</span>
+  Titanic:   <span class="highlight">+0.58</span>  ← puxa para "drama"<br>
+  Schindler: <span class="highlight">+0.50</span>  ← puxa para "drama"<br>
+  Gladiador: <span class="highlight">−0.50</span>  ← puxa para "ação"<br>
+  Die Hard:  <span class="highlight">−0.58</span>  ← puxa para "ação"<br>
+  Hangover:  <span class="highlight">~0.00</span>  ← neutro (comédia não faz parte desse padrão)<br>
+  Superbad:  <span class="highlight">~0.00</span>  ← neutro
+</div>
+
+<div class="callout-blue">
+  <strong>Isso é o item_factors[:, 0]</strong> no código — a coluna 0 da matriz de fatores latentes. Filmes de comédia ficam perto de zero porque não contribuem para esse padrão.
+</div>
+
+<h3>Posição de cada usuário no Componente 0</h3>
+
+<div class="calc-block">
+  <span class="step-title">Ana (produto escalar: notas × pesos do componente)</span>
+  (+1.0×+0.58) + (+0.8×+0.50) + (−0.8×−0.50) + (−1.0×−0.58) + (0×0) + (0×0)<br>
+  = 0.58 + 0.40 + 0.40 + 0.58 = <span class="highlight">+1.96</span>  ← lado "drama"
+
+  <br><br>
+
+  <span class="step-title">Bruno</span>
+  (−0.8×+0.58) + (−1.0×+0.50) + (+1.0×−0.50) + (+0.8×−0.58) + (0×0) + (0×0)<br>
+  = −0.46 − 0.50 − 0.50 − 0.46 = <span class="highlight">−1.92</span>  ← lado "ação"
+
+  <br><br>
+
+  <span class="step-title">Diego</span>
+  (0×+0.58) + (0×+0.50) + (0×−0.50) + (0×−0.58) + (+1.0×0) + (+0.8×0)<br>
+  = <span class="highlight">0.00</span>  ← neutro! Diego não se encaixa nesse padrão
+</div>
+
+<div class="callout">
+  <strong>Problema:</strong> o Componente 0 é cego para Diego. Com apenas 1 componente, o modelo não consegue distinguir Diego de alguém que não avaliou nada — os dois teriam posição 0.
+</div>
+
+<h2>Por que precisamos do Componente 1</h2>
+
+<p>
+  Após encontrar o Componente 0, o SVD <em>subtrai</em> esse padrão da matriz e procura
+  o próximo padrão mais forte no resíduo. O que sobrou que o Componente 0 não explicou?
+  A preferência de Diego por comédia.
+</p>
+
+<h3>Componente 1 — "comédia"</h3>
+
+<div class="calc-block">
+  <span class="step-title">Vetor do Componente 1 — um peso para cada filme</span>
+  Titanic:   <span class="highlight">~0.00</span>  ← neutro (drama já foi explicado pelo Comp. 0)<br>
+  Schindler: <span class="highlight">~0.00</span>  ← neutro<br>
+  Gladiador: <span class="highlight">~0.00</span>  ← neutro<br>
+  Die Hard:  <span class="highlight">~0.00</span>  ← neutro<br>
+  Hangover:  <span class="highlight">+0.78</span>  ← puxa para "comédia"<br>
+  Superbad:  <span class="highlight">+0.62</span>  ← puxa para "comédia"
+</div>
+
+<h3>Posição de cada usuário no Componente 1</h3>
+
+<div class="calc-block">
+  <span class="step-title">Diego</span>
+  (0×0) + (0×0) + (0×0) + (0×0) + (+1.0×+0.78) + (+0.8×+0.62)<br>
+  = 0.78 + 0.50 = <span class="highlight">+1.28</span>  ← Diego aparece! lado "comédia"
+
+  <br><br>
+
+  <span class="step-title">Ana, Bruno, Carla</span>
+  Todos têm zeros nos filmes de comédia → posição <span class="highlight">~0.00</span> no Componente 1
+</div>
+
+<h2>O vetor latente final de cada filme (2 componentes)</h2>
+
+<table>
+  <thead>
+    <tr><th>Filme</th><th>Comp. 0<br><small>"drama/ação"</small></th><th>Comp. 1<br><small>"comédia"</small></th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Titanic</td><td>+0.58</td><td>~0.00</td></tr>
+    <tr><td>Schindler</td><td>+0.50</td><td>~0.00</td></tr>
+    <tr><td>Gladiador</td><td>−0.50</td><td>~0.00</td></tr>
+    <tr><td>Die Hard</td><td>−0.58</td><td>~0.00</td></tr>
+    <tr><td>Hangover</td><td>~0.00</td><td>+0.78</td></tr>
+    <tr><td>Superbad</td><td>~0.00</td><td>+0.62</td></tr>
+  </tbody>
+</table>
+
+<div class="callout-green">
+  <strong>Isso é o item_factors com k=2.</strong> Titanic e Schindler têm vetores parecidos → alta similaridade de cosseno. Hangover e Titanic têm vetores ortogonais → similaridade próxima de zero. Com 50 componentes o modelo captura 50 padrões desse tipo simultaneamente.
+</div>
+
+<h2>Por que isso é útil para similaridade</h2>
+
+<p>
+  Titanic tem vetor <strong>[+0.58, 0.00]</strong> e Schindler <strong>[+0.50, 0.00]</strong> — apontam quase na mesma direção → alta similaridade. Hangover tem <strong>[0.00, +0.78]</strong> — direção perpendicular a Titanic → similaridade próxima de zero. O modelo aprendeu esses padrões <em>sem saber nada sobre gênero</em>.
+</p>
+
+<h2>Verificação rápida</h2>
+
+<div class="quiz" id="q1">
+  <h3>Questão 1</h3>
+  <p class="quiz-q">
+    No exemplo, o Componente 0 tem valor +0.60 para Titanic e −0.60 para Toy Story.
+    O que significa o sinal negativo de Toy Story?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q1" value="a"> Toy Story é um filme ruim segundo o modelo</label></li>
+    <li><label><input type="radio" name="q1" value="b"> Toy Story puxa no sentido oposto ao padrão dominante capturado por esse componente</label></li>
+    <li><label><input type="radio" name="q1" value="c"> Toy Story tem menos avaliações do que Titanic no dataset</label></li>
+    <li><label><input type="radio" name="q1" value="d"> Toy Story foi centralizado com uma média de usuário negativa</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q1','b')">Verificar</button>
+  <div class="quiz-feedback" id="q1-feedback"></div>
+</div>
+
+<div class="quiz" id="q2">
+  <h3>Questão 2</h3>
+  <p class="quiz-q">
+    Ana tem posição +1.70 no Componente 0. Bruno tem −1.60.
+    O que podemos concluir sobre a similaridade entre Ana e Bruno neste componente?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q2" value="a"> São muito similares porque os valores têm magnitudes parecidas</label></li>
+    <li><label><input type="radio" name="q2" value="b"> São opostos: Ana prefere o padrão "drama" e Bruno o padrão "ação"</label></li>
+    <li><label><input type="radio" name="q2" value="c"> Bruno avaliou mais filmes do que Ana no conjunto de treino</label></li>
+    <li><label><input type="radio" name="q2" value="d"> O modelo não consegue comparar Ana e Bruno com apenas 1 componente</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q2','b')">Verificar</button>
+  <div class="quiz-feedback" id="q2-feedback"></div>
+</div>
+
+<div class="quiz" id="q3">
+  <h3>Questão 3</h3>
+  <p class="quiz-q">
+    Por que o modelo usa 50 componentes em vez de apenas 1?
+  </p>
+  <ul class="options">
+    <li><label><input type="radio" name="q3" value="a"> Porque 1 componente seria muito lento para calcular com 12.315 filmes</label></li>
+    <li><label><input type="radio" name="q3" value="b"> Porque cada componente adicional captura um padrão diferente, e 50 juntos representam preferências muito mais ricas do que qualquer padrão único</label></li>
+    <li><label><input type="radio" name="q3" value="c"> Porque a sklearn exige no mínimo 50 componentes para o TruncatedSVD funcionar</label></li>
+    <li><label><input type="radio" name="q3" value="d"> Porque 50 é o número de gêneros de filme no dataset MovieLens</label></li>
+  </ul>
+  <button class="btn-check" onclick="checkQ('q3','b')">Verificar</button>
+  <div class="quiz-feedback" id="q3-feedback"></div>
+</div>
+
+<div class="teacher-note">
+  <strong>Dúvidas?</strong> Pergunte ao agente — ele pode mostrar os valores reais dos componentes do seu modelo rodando o código no notebook, ou explicar a diferença entre TruncatedSVD e SVD clássico.
+</div>
+
+<footer>
+  <p>
+    <strong>Fonte primária:</strong>
+    <a href="https://www.youtube.com/watch?v=nbBvuuNVfco" target="_blank">
+      Gilbert Strang — Singular Value Decomposition (MIT OpenCourseWare)
+    </a>
+    — a melhor explicação geométrica de SVD disponível gratuitamente.
+  </p>
+  <p style="margin-top:0.8rem">
+    Veja também: <a href="0003-centralizacao-svd.html">Lição 3 — Centralização por Usuário</a> · <a href="0004-similaridade-cosseno-itens.html">Lição 4 — Similaridade de Cosseno</a>
+  </p>
+</footer>
+
+<script>
+  const feedbacks = {
+    q1: {
+      b: { type: 'correct', text: 'Correto. O sinal indica direção, não qualidade. Nesse componente, positivo = "padrão drama" e negativo = "padrão ação". Toy Story puxa na direção oposta ao Titanic, o que significa que usuários que gostam de um tendem a não gostar do outro — e foi exatamente isso que o modelo aprendeu dos dados.' },
+      default: { type: 'incorrect', text: 'Não. O sinal no vetor latente não tem relação com qualidade ou quantidade de avaliações. Ele indica direção dentro do padrão capturado pelo componente — positivo e negativo são os dois lados desse padrão.' }
+    },
+    q2: {
+      b: { type: 'correct', text: 'Correto. Sinais opostos no mesmo componente significam preferências opostas para aquele padrão. Ana (+1.70) está fortemente no lado "drama"; Bruno (−1.60) está fortemente no lado "ação". Recomendar para Ana o que Bruno gostou seria um erro sistemático.' },
+      default: { type: 'incorrect', text: 'Não. A magnitude parecida (1.70 vs 1.60) é coincidência. O que importa é o sinal: positivos e negativos no mesmo componente indicam preferências opostas naquele padrão. Ana e Bruno são opostos nesse componente.' }
+    },
+    q3: {
+      b: { type: 'correct', text: 'Correto. Com 1 componente só capturamos "drama vs. ação". Com 50, capturamos simultaneamente drama vs. ação, filmes antigos vs. novos, filmes de autor vs. blockbuster, e 47 outros padrões que os dados revelaram. O vetor latente de 50 dimensões de cada filme é a combinação de todos esses padrões.' },
+      default: { type: 'incorrect', text: 'Não. A escolha de 50 é um hiperparâmetro — poderíamos usar 10, 100 ou 200. 50 é um valor padrão da literatura que equilibra expressividade (capturar padrões suficientes) com overfitting (não memorizar ruído individual).' }
+    }
+  };
+  function checkQ(qId, correct) {
+    const selected = document.querySelector(`input[name="${qId}"]:checked`);
+    const fb = document.getElementById(`${qId}-feedback`);
+    if (!selected) { fb.textContent = 'Selecione uma opção.'; fb.style.display = 'block'; fb.className = 'quiz-feedback incorrect'; return; }
+    const val = selected.value;
+    const result = val === correct ? feedbacks[qId][val] : feedbacks[qId].default;
+    fb.textContent = result.text;
+    fb.className = 'quiz-feedback ' + result.type;
+    fb.style.display = 'block';
+  }
+</script>
+</body>
+</html>
